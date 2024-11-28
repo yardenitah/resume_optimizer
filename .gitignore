@@ -1,0 +1,34 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Environment variables
+.env
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# Logs
+*.log
+
+# Docker
+*.env
+docker-compose.override.yml
+
+# Python cache
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+.coverage
+
+# Editor & IDE configurations
+.idea/
+.vscode/
+*.swp
+*.swo
