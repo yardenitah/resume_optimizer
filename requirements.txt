@@ -1,5 +1,3 @@
-fastapi~=0.115.5
-python-dotenv~=1.0.1
 # FastAPI for the backend framework
 fastapi==0.100.0
 
@@ -9,8 +7,8 @@ uvicorn==0.23.0
 # MongoDB driver
 pymongo==4.5.0
 
-# ORM/ODM for MongoDB (optional, if needed)
-mongoengine==0.27.0
+# Optional MongoDB asynchronous ODM
+motor==3.3.0
 
 # ChatGPT API integration
 openai==0.27.0
@@ -28,12 +26,12 @@ python-docx==0.8.11
 # Data validation and serialization
 pydantic==2.1.1
 
-# Database query optimization (optional)
-motor==3.3.0
-
-# Optional SQL support
+# PostgreSQL database support (if needed)
 sqlalchemy==2.0.30
-psycopg2-binary==2.9.6  # If using PostgreSQL
+psycopg2-binary==2.9.6
+
+# Password hashing and authentication
+passlib[bcrypt]==1.7.4  # Passlib with bcrypt support
 
 # Unit testing
 pytest==7.4.2
@@ -45,8 +43,11 @@ flake8==6.1.0
 # Environment variable management
 python-dotenv==1.0.0
 
+# HTTP request handling (optional utility)
+requests==2.31.0
+
 # Docker interaction (optional for managing containers from Python)
 docker==6.1.3
 
-# Any other utility libraries (optional)
-requests==2.31.0
+python-jose==3.3.0
+

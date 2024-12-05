@@ -1,3 +1,4 @@
+# app/services/userService.py
 from bson import ObjectId
 from fastapi import HTTPException
 from passlib.hash import bcrypt
@@ -38,10 +39,12 @@ def authenticate_user_service(email: str, password: str):
 
     # Verify the password
     if not bcrypt.verify(password, user["password"]):
-        raise HTTPException(status_code=401, detail="Invalid credentials.")
+        raise HTTPException(status_code=401, detail="Invalid password.")
 
-    # Generate a JWT token
-    return create_access_token(data={"sub": user["email"]})
+    # Generate a JWT token from jwt file, including the is_admin field
+    token = create_access_token(data={"sub": user["email"], "is_admin": user.get("is_admin", False)})
+
+    return token
 
 
 def get_all_users_service():
@@ -81,13 +84,3 @@ def delete_user_service(user_id: str):
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="User not found.")
     return {"message": "User deleted successfully."}
-
-
-def delete_all_users_service():
-    """
-    Delete all users from the database.
-    """
-    result = users_collection.delete_many({})  # Delete all documents in the collection
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="No users found to delete.")
-    return {"message": f"Deleted {result.deleted_count} users."}

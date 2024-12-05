@@ -1,6 +1,9 @@
 to open swagger : http://127.0.0.1:8000/docs
 
 
+fix admin routs from gpt,
+
+
 Project Structure Review :
     1. app/:
         .   config/: Likely for configuration files, e.g., database, API keys, etc. Good separation of concerns.

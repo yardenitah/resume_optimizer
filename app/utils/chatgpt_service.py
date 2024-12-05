@@ -11,7 +11,7 @@ async def analyze_resume(resume_content: str, job_description: str) -> str:
     # Call OpenAI's ChatGPT API
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": "You are an expert resume reviewer."},
                 {"role": "user",

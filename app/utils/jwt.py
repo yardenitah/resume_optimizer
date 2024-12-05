@@ -1,16 +1,19 @@
+# app/utils/jwt.py
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
+from dotenv import load_dotenv
+import os
+load_dotenv()
+
 
 # Constants for JWT
-SECRET_KEY = "your-secret-key"  # Replace with a secure key from environment variables
+# SECRET_KEY = "your-secret-key"
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
-    """
-    Create a JWT access token with an optional expiration time.
-    """
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -30,3 +33,6 @@ def decode_access_token(token: str) -> dict:
         return payload
     except JWTError:
         raise ValueError("Invalid or expired token.")
+
+
+
