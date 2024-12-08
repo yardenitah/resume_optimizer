@@ -11,7 +11,7 @@ db = db_connection.get_database()
 users_collection = db['users']
 
 
-def create_user_service(user_data):
+def register_service(user_data):
     """
     Create a new user with a hashed password.
     """
@@ -31,7 +31,7 @@ def create_user_service(user_data):
 
 def authenticate_user_service(email: str, password: str):
     """
-    Authenticate a user and return a JWT token.
+    Authenticate a user and return a JWT token. use in login route
     """
     user = users_collection.find_one({"email": email})
     if not user:
@@ -52,35 +52,8 @@ def get_all_users_service():
     Retrieve all users from the database.
     """
     users = list(users_collection.find())
+    print("the len of user list :", len(users))
     for user in users:
         user["id"] = str(user["_id"])
         del user["_id"]
     return users
-
-
-def get_user_by_id_service(user_id: str):
-    """
-    Retrieve a single user by their ID.
-    """
-    if not ObjectId.is_valid(user_id):
-        raise HTTPException(status_code=400, detail="Invalid user ID.")
-
-    user = users_collection.find_one({"_id": ObjectId(user_id)})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found.")
-    user["id"] = str(user["_id"])
-    del user["_id"]
-    return user
-
-
-def delete_user_service(user_id: str):
-    """
-    Delete a user by their ID.
-    """
-    if not ObjectId.is_valid(user_id):
-        raise HTTPException(status_code=400, detail="Invalid user ID.")
-
-    result = users_collection.delete_one({"_id": ObjectId(user_id)})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="User not found.")
-    return {"message": "User deleted successfully."}

@@ -17,10 +17,6 @@ app.include_router(resumeRouts.router, prefix="/resumes", tags=["Resumes"])
 app.include_router(adminRoutes.router, prefix="/admin", tags=["Admin"])
 
 
-# Application metadata
-# app_name = os.getenv("APP_NAME", "Resume Optimizer")
-
-
 @app.get("/")
 async def root():
     print("message: Welcome to Resume optimizer !!!")
