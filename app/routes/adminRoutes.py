@@ -8,7 +8,6 @@ from app.services.adminService import (
     delete_user_admin_service,
 )
 
-# Define the router with a prefix for all admin routes
 router = APIRouter(
     tags=["Admin"],
     dependencies=[Depends(verify_admin)]  # Enforce admin access for all routes

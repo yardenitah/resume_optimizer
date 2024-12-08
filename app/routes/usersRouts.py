@@ -3,7 +3,8 @@ from fastapi import APIRouter, HTTPException, Depends, Header
 from app.models.user import User
 from app.services.userService import (
     register_service,
-    authenticate_user_service, get_all_users_service,
+    authenticate_user_service,
+    get_all_users_service,
 )
 from app.utils.jwt import decode_access_token
 
@@ -19,6 +20,7 @@ def verify_token(Authorization: str = Header(None)):
 
     # Extract the token after 'Bearer'
     scheme, _, token = Authorization.partition(' ')
+    print(f"Authorization Header - Scheme: {scheme}, Token: {token}")  # Debugging output
     if scheme.lower() != 'bearer' or not token:
         raise HTTPException(status_code=401, detail="Invalid token scheme.")
 
@@ -43,7 +45,6 @@ async def login():
     """
     Authenticate a user and return a JWT token.
     """
-    # delete !!
     email = "yarden1606@gmail.com"
     password = "Yarden1169!"
     access_token = authenticate_user_service(email, password)
@@ -53,7 +54,7 @@ async def login():
 @router.get("/users")
 async def get_all_users():
     """
-    Retrieve all users. Admin access required.
+    Retrieve all users.
     """
     users = get_all_users_service()
     return users
