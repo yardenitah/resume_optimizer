@@ -4,6 +4,9 @@ from fastapi import HTTPException
 from passlib.hash import bcrypt
 from app.database.connection import MongoDBConnection
 from app.utils.jwt import create_access_token
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Initialize MongoDB connection
 db_connection = MongoDBConnection()
@@ -48,12 +51,29 @@ def authenticate_user_service(email: str, password: str):
 
 
 def get_all_users_service():
-    """
-    Retrieve all users from the database.
-    """
+    """ Retrieve all users from the database. """
     users = list(users_collection.find())
     print("the len of user list :", len(users))
     for user in users:
         user["id"] = str(user["_id"])
         del user["_id"]
     return users
+
+
+def update_user_service(user_id: str, updated_fields: dict):
+    """ Update user details, ensuring the password is hashed correctly. """
+    if not ObjectId.is_valid(user_id):
+        raise ValueError("Invalid user ID format.")
+
+    # Check if password is being updated
+    if "password" in updated_fields:
+        # Hash the password only if it isn't already hashed
+        if not pwd_context.identify(updated_fields["password"]):
+            updated_fields["password"] = bcrypt.hash(updated_fields["password"])
+
+    result = users_collection.update_one({"_id": ObjectId(user_id)}, {"$set": updated_fields})
+
+    if result.matched_count == 0:
+        raise ValueError("User not found.")
+
+    return result.modified_count

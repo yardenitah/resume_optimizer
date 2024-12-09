@@ -1,5 +1,7 @@
-from fastapi import APIRouter, HTTPException
+# app/routes/resumeRouts.py
+from fastapi import APIRouter, Depends, HTTPException, Header
 from typing import List
+from app.utils.jwt import verify_token
 from app.models.resume import Resume
 from app.services.resumeService import (
     create_resume_service,
@@ -9,49 +11,51 @@ from app.services.resumeService import (
     delete_resume_service,
     analyze_resume_service,
 )
+from app.utils.admin_verification import verify_admin  # Import the verify_admin dependency
 
 router = APIRouter()
 
 
 @router.post("/")
-async def create_resume(resume: Resume):
+async def upload_resume(resume: Resume, Authorization: str = Header(None)):
     """
-    Create a new resume.
+    Upload a new resume for the user.
     """
-    resume_id = create_resume_service(resume)
-    return {"message": "Resume created successfully.", "resume_id": resume_id}
+    # Validate the user's token
+    user_payload = verify_token(Authorization)
+    print(f"user_payload: {user_payload}")
+    user_id = user_payload.get("sub")
+    print(f'user_id: {user_id}')
+
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid user token.")
+
+    # Add the user ID to the resume object
+    resume.user_id = user_id
+
+    # Save the resume using the service
+    resume_id = await create_resume_service(resume)
+    return {"message": "Resume uploaded successfully.", "resume_id": resume_id}
 
 
-@router.get("/", response_model=List[Resume])
+@router.get("/", response_model=List[Resume], dependencies=[Depends(verify_admin)])  # Enforce admin access
 async def get_all_resumes():
-    """
-    Retrieve all resumes.
-    """
-    return get_all_resumes_service()
+    pass
 
 
 @router.get("/{resume_id}", response_model=Resume)
 async def get_resume_by_id(resume_id: str):
-    """
-    Retrieve a resume by its ID.
-    """
-    return get_resume_by_id_service(resume_id)
+    pass
 
 
 @router.put("/{resume_id}")
-async def update_resume(resume_id: str, updated_resume: Resume):
-    """
-    Update a resume by its ID.
-    """
-    return update_resume_service(resume_id, updated_resume)
+async def update_resume_list(resume_id: str, updated_resume: Resume):
+    pass
 
 
 @router.delete("/{resume_id}")
-async def delete_resume(resume_id: str):
-    """
-    Delete a resume by its ID.
-    """
-    return delete_resume_service(resume_id)
+async def delete_resume_from_resumeList(resume_id: str):
+    pass
 
 
 @router.post("/{resume_id}/analyze")
