@@ -1,6 +1,5 @@
 # app/routes/usersRoutes.py
 from typing import Optional
-
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Depends, Header, Query
 from pydantic import EmailStr
@@ -25,27 +24,28 @@ users_collection = db['users']
 
 @router.post("/register", status_code=201)
 async def register(user: User):
-    """
-    Register a new user with hashed password.
-    """
     user_id = register_service(user)
     return {"message": "User registered successfully.", "user_id": user_id}
 
 
 @router.post("/login", status_code=200)
 async def login(email: EmailStr, password: str):
-    """
-    Authenticate a user and return a JWT token.
-    """
+    """ Authenticate a user and return a JWT token. """
+    token_data = authenticate_user_service(email, password)
+    return token_data
+
+
+# DELETE !!
+@router.post("/loginAdmin", status_code=200)
+async def login():
+    email = "yarden1606@gmail.com"
+    password = "Yarden1169!"
     token_data = authenticate_user_service(email, password)
     return token_data
 
 
 @router.get("/users")
 async def get_all_users():
-    """
-    Retrieve all users.
-    """
     users = get_all_users_service()
     return users
 

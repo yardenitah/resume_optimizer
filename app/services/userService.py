@@ -52,7 +52,11 @@ def authenticate_user_service(email: EmailStr, password: str):
         raise HTTPException(status_code=401, detail="Invalid email or password.")
 
     # Generate a JWT token
-    token = create_access_token(data={"sub": user["email"], "is_admin": user.get("is_admin", False)})
+    token = create_access_token(data={
+        "sub": user["email"],
+        "is_admin": user.get("is_admin", False),
+        "user_id": str(user["_id"])  # Include user_id in the token
+    })
 
     return {"access_token": token, "token_type": "bearer"}
 

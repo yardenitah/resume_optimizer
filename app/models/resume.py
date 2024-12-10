@@ -11,3 +11,4 @@ class Resume(BaseModel):
     score: Optional[float] = None  # AI-generated score
     s3_url: Optional[str] = None  # URL of the uploaded file in S3
     created_at: datetime = datetime.utcnow()  # Automatically sets the current UTC time
+

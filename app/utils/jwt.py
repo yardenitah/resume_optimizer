@@ -53,6 +53,8 @@ def verify_token(Authorization: str = Header(None)):
 
     try:
         payload = decode_access_token(token)  # Decode and validate the token
+        if not payload.get("user_id"):
+            raise HTTPException(status_code=401, detail="Invalid token. Missing user_id.")
         return payload
     except ValueError as e:
         raise HTTPException(status_code=403, detail=f"Token Error: {str(e)}")

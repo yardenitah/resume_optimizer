@@ -5,10 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="71ec95b5-b9f3-4233-bf94-004a06ba38a6" name="Changes" comment="Add .gitignore to exclude unnecessary files and sensitive data">
-      <change afterPath="$PROJECT_DIR$/app/utils/validation.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/models/resume.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/models/resume.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/routes/resumeRouts.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/resumeRouts.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/routes/usersRouts.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/usersRouts.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/services/resumeService.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/services/resumeService.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/services/userService.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/services/userService.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/utils/jwt.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/utils/jwt.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/utils/s3_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/utils/s3_service.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -92,7 +97,7 @@
       <updated>1732729234267</updated>
       <workItem from="1732729243098" duration="4971000" />
       <workItem from="1732802434072" duration="12608000" />
-      <workItem from="1733836799926" duration="4513000" />
+      <workItem from="1733836799926" duration="18418000" />
     </task>
     <task id="LOCAL-00001" summary="Add .gitignore to exclude unnecessary files and sensitive data">
       <option name="closed" value="true" />
@@ -124,6 +129,6 @@
     <option name="LAST_COMMIT_MESSAGE" value="Add .gitignore to exclude unnecessary files and sensitive data" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/resume_optimizer$resume_optimizer.coverage" NAME="resume_optimizer Coverage Results" MODIFIED="1733841451651" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/resume_optimizer$resume_optimizer.coverage" NAME="resume_optimizer Coverage Results" MODIFIED="1733865793907" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
   </component>
 </project>
