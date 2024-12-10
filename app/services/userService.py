@@ -2,7 +2,10 @@
 from bson import ObjectId
 from fastapi import HTTPException
 from passlib.hash import bcrypt
+from pydantic import EmailStr
+
 from app.database.connection import MongoDBConnection
+from app.models.user import User
 from app.utils.jwt import create_access_token
 from passlib.context import CryptContext
 
@@ -14,40 +17,44 @@ db = db_connection.get_database()
 users_collection = db['users']
 
 
-def register_service(user_data):
+def register_service(user_data: User):
     """
     Create a new user with a hashed password.
     """
+    # Ensure email uniqueness
     existing_user = users_collection.find_one({"email": user_data.email})
     if existing_user:
-        raise HTTPException(status_code=400, detail="User already exists.")
+        raise HTTPException(status_code=400, detail="A user with this email already exists.")
 
-    # Hash the user's password before storing it
-    user_data.password = bcrypt.hash(user_data.password)
+    # Hash the user's password securely
+    hashed_password = pwd_context.hash(user_data.password)
+    user_data.password = hashed_password
+
     # Insert the new user into MongoDB
     result = users_collection.insert_one(user_data.dict())
     if not result.inserted_id:
-        raise HTTPException(status_code=500, detail="Failed to create user.")
+        raise HTTPException(status_code=500, detail="Failed to register the user.")
 
     return str(result.inserted_id)
 
 
-def authenticate_user_service(email: str, password: str):
+# use fir login
+def authenticate_user_service(email: EmailStr, password: str):
     """
-    Authenticate a user and return a JWT token. use in login route
+    Authenticate a user and return a JWT token.
     """
     user = users_collection.find_one({"email": email})
     if not user:
-        raise HTTPException(status_code=404, detail="User not found.")
+        raise HTTPException(status_code=401, detail="Invalid email or password.")
 
     # Verify the password
-    if not bcrypt.verify(password, user["password"]):
-        raise HTTPException(status_code=401, detail="Invalid password.")
+    if not pwd_context.verify(password, user["password"]):
+        raise HTTPException(status_code=401, detail="Invalid email or password.")
 
-    # Generate a JWT token from jwt file, including the is_admin field
+    # Generate a JWT token
     token = create_access_token(data={"sub": user["email"], "is_admin": user.get("is_admin", False)})
 
-    return token
+    return {"access_token": token, "token_type": "bearer"}
 
 
 def get_all_users_service():

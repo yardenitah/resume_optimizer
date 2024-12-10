@@ -3,14 +3,17 @@ from typing import Optional
 
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Depends, Header, Query
+from pydantic import EmailStr
+
 from app.models.user import User
 from app.database.connection import MongoDBConnection
 from app.services.userService import (
     register_service,
     authenticate_user_service,
-    get_all_users_service, update_user_service,
+    get_all_users_service, update_user_service, pwd_context,
 )
 from app.utils.jwt import verify_token
+from app.utils.validation import validate_update_payload
 
 router = APIRouter()
 
@@ -20,21 +23,22 @@ db = db_connection.get_database()
 users_collection = db['users']
 
 
-@router.post("/")
+@router.post("/register", status_code=201)
 async def register(user: User):
-    """ Create a new user with a hashed password. """
+    """
+    Register a new user with hashed password.
+    """
     user_id = register_service(user)
-    return {"message": "User created successfully.", "user_id": user_id}
+    return {"message": "User registered successfully.", "user_id": user_id}
 
 
-@router.post("/authenticate")
-async def login(email: Optional[str] = Query(None, description="User's email address"), password: Optional[str] = Query(None, description="User's password")):
-    """ Authenticate a user and return a JWT token. """
-    if not email and not password:
-        email = "admin@example.com"
-        password = "admin"
-    access_token = authenticate_user_service(email, password)
-    return {"access_token": access_token, "token_type": "bearer"}
+@router.post("/login", status_code=200)
+async def login(email: EmailStr, password: str):
+    """
+    Authenticate a user and return a JWT token.
+    """
+    token_data = authenticate_user_service(email, password)
+    return token_data
 
 
 @router.get("/users")
@@ -46,52 +50,73 @@ async def get_all_users():
     return users
 
 
-@router.put("/{user_id}")
-async def update_user(user_id: str, user_update: User, token: dict = Depends(verify_token)):
+@router.put("/{user_id}", response_model=dict)
+async def update_user(user_id: str, user_update: dict, token: dict = Depends(verify_token)):
     """
     Update user details.
-    Ensure the user can only update their own details unless they are an admin.
+    Ensure only allowed fields are updated, and restrict updates to self unless admin.
     """
-    # Extract user email and is_admin from the token
     email = token.get("sub")
     is_admin = token.get("is_admin", False)
 
-    # Retrieve the user associated with the user_id
-    user = users_collection.find_one({"_id": ObjectId(user_id)})
+    # Validate user_id format
+    if not ObjectId.is_valid(user_id):
+        raise HTTPException(status_code=400, detail="Invalid user ID format.")
 
+    # Fetch user from database
+    user = users_collection.find_one({"_id": ObjectId(user_id)})
     if not user:
         raise HTTPException(status_code=404, detail="User not found.")
 
-    # Check if the user is authorized to update this account
+    # Ensure the logged-in user is authorized to update this user
     if user["email"] != email and not is_admin:
-        raise HTTPException(status_code=403, detail="You do not have permission to update this user's details.")
+        raise HTTPException(status_code=403, detail="Permission denied.")
 
-    # Process the update
-    updated_fields = user_update.dict(exclude_unset=True)
+    # Validate the update payload
+    allowed_fields = {"name", "password", "email"}
+    updated_fields = validate_update_payload(user_update, allowed_fields)
+
+    # Validate email uniqueness if updating email
+    if "email" in updated_fields:
+        new_email = updated_fields["email"]
+        if users_collection.find_one({"email": new_email, "_id": {"$ne": ObjectId(user_id)}}):
+            raise HTTPException(status_code=400, detail="This email is already in use.")
+
+    # Hash the password if it's being updated
+    if "password" in updated_fields:
+        updated_fields["password"] = pwd_context.hash(updated_fields["password"])
+
     if not updated_fields:
-        raise HTTPException(status_code=400, detail="No fields provided for update.")
+        raise HTTPException(status_code=400, detail="No valid fields provided for update.")
 
-    try:
-        modified_count = update_user_service(user_id, updated_fields)
-        if modified_count == 0:
-            return {"message": "No changes made to the user details."}
-        return {"message": "User details updated successfully."}
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    # Perform the update
+    result = users_collection.update_one({"_id": ObjectId(user_id)}, {"$set": updated_fields})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=500, detail="Failed to update user details.")
+
+    return {"message": "User details updated successfully."}
 
 
-@router.get("/me")
+@router.get("/me", response_model=dict)
 async def get_logged_in_user_details(token: dict = Depends(verify_token)):
     """
     Retrieve details about the currently logged-in user.
     """
     email = token.get("sub")
     if not email:
-        raise HTTPException(status_code=401, detail="Invalid token. Email not found.")
+        raise HTTPException(status_code=401, detail="Invalid token. Missing email.")
 
     # Fetch user details from the database
-    user = users_collection.find_one({"email": email}, {"_id": 0, "password": 0})  # Exclude sensitive fields
+    user = users_collection.find_one({"email": email})
     if not user:
         raise HTTPException(status_code=404, detail="User not found.")
 
-    return user
+    # Convert ObjectId to string and remove sensitive fields
+    user_data = {
+        "id": str(user["_id"]),
+        "name": user["name"],
+        "email": user["email"],
+        "is_admin": user.get("is_admin", False),
+        "created_at": user.get("created_at")
+    }
+    return {"user": user_data}
