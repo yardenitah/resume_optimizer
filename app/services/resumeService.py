@@ -1,10 +1,47 @@
 # app/services/resumeService.py
+from app.utils.file_extractor import extract_text_from_file
 from app.utils.s3_service import upload_file_to_s3, AWS_S3_BUCKET, generate_presigned_url, extract_file_key, s3_client
 from app.database.connection import MongoDBConnection
 from bson import ObjectId
 from datetime import datetime
 from fastapi import HTTPException
 from bson.errors import InvalidId
+
+db_connection = MongoDBConnection()
+db = db_connection.get_database()
+resumes_collection = db["resumes"]
+
+
+def upload_resume_service(user_id: str, file, title: str, file_extension: str):
+    """
+    Handle the uploading of a resume file.
+    """
+    # Extract text content from the file
+    text_content = ""
+    try:
+        text_content = extract_text_from_file(file, file_extension)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to extract text: {str(e)}")
+    print(f"\n\ntext content: {text_content}\n\n")
+
+    # Reset file pointer before uploading to S3
+    file.seek(0)
+    # Upload file to S3 and get the S3 URL
+    s3_url = upload_file_to_s3(file, user_id, file_extension)
+
+    # Save metadata in MongoDB, including the S3 URL
+    resume_data = {
+        "user_id": user_id,
+        "title": title,
+        "content": text_content,  # Save extracted text here
+        "s3_url": s3_url,  # Save the S3 URL here
+        "created_at": datetime.utcnow(),
+    }
+    result = resumes_collection.insert_one(resume_data)
+    if not result.inserted_id:
+        raise HTTPException(status_code=500, detail="Failed to save resume in database.")
+
+    return {"message": "Resume uploaded successfully.", "s3_url": s3_url}
 
 
 def delete_all_resumes_service():
@@ -39,33 +76,6 @@ def delete_all_resumes_service():
     # Delete all records from MongoDB
     result = resumes_collection.delete_many({})
     return {"message": f"Deleted {result.deleted_count} resumes from MongoDB and corresponding files from S3."}
-
-
-db_connection = MongoDBConnection()
-db = db_connection.get_database()
-resumes_collection = db["resumes"]
-
-
-def upload_resume_service(user_id: str, file, title: str, file_extension: str):
-    """
-    Handle the uploading of a resume file.
-    """
-    # Upload file to S3 and get the S3 URL
-    s3_url = upload_file_to_s3(file, user_id, file_extension)
-
-    # Save metadata in MongoDB, including the S3 URL
-    resume_data = {
-        "user_id": user_id,
-        "title": title,
-        "content": "",  # Optional: Can be filled later with parsed resume content
-        "s3_url": s3_url,  # Save the S3 URL here
-        "created_at": datetime.utcnow(),
-    }
-    result = resumes_collection.insert_one(resume_data)
-    if not result.inserted_id:
-        raise HTTPException(status_code=500, detail="Failed to save resume in database.")
-
-    return {"message": "Resume uploaded successfully.", "s3_url": s3_url}
 
 
 def get_resumes_service(user_id: str, skip: int = 0, limit: int = 10):
