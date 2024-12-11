@@ -1,7 +1,7 @@
 # app/routes/resumeRouts.py
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends, Query
 from app.services.resumeService import upload_resume_service, get_resumes_service, get_presigned_url_service, \
-    delete_all_resumes_service, delete_user_resume_service
+    delete_all_resumes_service, delete_user_resume_service, search_resumes_by_title_service
 from app.utils.jwt import verify_token
 
 router = APIRouter()
@@ -78,8 +78,8 @@ async def delete_all_resumes(token: dict = Depends(verify_token)):
 
 @router.delete("/{resume_id}", status_code=200)
 async def delete_user_resume(
-    resume_id: str,
-    token: dict = Depends(verify_token),
+        resume_id: str,
+        token: dict = Depends(verify_token),
 ):
     """
     Delete a specific resume uploaded by the user.
@@ -91,3 +91,16 @@ async def delete_user_resume(
     result = delete_user_resume_service(user_id, resume_id)
     return result
 
+
+@router.get("/search", status_code=200)
+async def search_resumes_by_title(title: str = Query(..., description="Title to search for"), token: dict = Depends(verify_token), skip: int = Query(0, ge=0), limit: int = Query(10, ge=1),):
+    """
+    Search resumes by title uploaded by the authenticated user.
+    """
+    user_id = token.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid user.")
+
+    results = search_resumes_by_title_service(user_id, title, skip, limit)
+
+    return "No matches found" if len(results) == 0 else results

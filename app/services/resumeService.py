@@ -170,3 +170,17 @@ def delete_user_resume_service(user_id: str, resume_id: str):
         raise HTTPException(status_code=400, detail="Invalid resume ID.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
+
+def search_resumes_by_title_service(user_id: str, title: str, skip: int = 0, limit: int = 10):
+    """
+    Search resumes by title for a specific user.
+    """
+    query = {
+        "user_id": user_id,
+        "title": {"$regex": title, "$options": "i"}  # Case-insensitive search
+    }
+    resumes = list(resumes_collection.find(query).skip(skip).limit(limit))
+    for resume in resumes:
+        resume["_id"] = str(resume["_id"])  # Convert ObjectId to string for JSON serialization
+    return resumes

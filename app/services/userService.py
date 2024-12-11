@@ -6,6 +6,7 @@ from pydantic import EmailStr
 
 from app.database.connection import MongoDBConnection
 from app.models.user import User
+from app.services.resumeService import resumes_collection
 from app.utils.jwt import create_access_token
 from passlib.context import CryptContext
 
@@ -88,3 +89,5 @@ def update_user_service(user_id: str, updated_fields: dict):
         raise ValueError("User not found.")
 
     return result.modified_count
+
+
