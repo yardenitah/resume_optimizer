@@ -1,4 +1,5 @@
 # app/main.py
+import openai
 from fastapi.openapi.models import APIKey
 from fastapi.openapi.models import SecurityScheme
 from fastapi.openapi.utils import get_openapi
@@ -14,6 +15,12 @@ load_dotenv()
 
 # Initialize FastAPI app
 app = FastAPI()
+# Load OpenAI API key
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+# Set the API key
+openai.api_key = OPENAI_API_KEY
+print(f"OpenAI API Key: {OPENAI_API_KEY}\n\n")
 
 # Include routers
 app.include_router(usersRouts.router, prefix="/users", tags=["Users"])
@@ -55,6 +62,29 @@ app.openapi = custom_openapi
 
 
 @app.get("/")
-async def root():
-    print("message: Welcome to Resume optimizer !!!")
-    return {"message: Welcome to Resume optimizer"}
+async def check_openai_key():
+    try:
+        # Make a simple request to the OpenAI API with a supported model
+        response = openai.ChatCompletion.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": "Say hello!"}
+            ]
+        )
+        message = response.choices[0].message["content"].strip()
+        return {
+            "status": "success",
+            "message": "API Key is valid!",
+            "response": message
+        }
+    except openai.error.AuthenticationError:
+        return {
+            "status": "error",
+            "message": "Invalid API Key! Please check your key and try again."
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"An error occurred: {e}"
+        }
