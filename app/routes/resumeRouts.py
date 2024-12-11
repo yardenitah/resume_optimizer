@@ -1,6 +1,7 @@
 # app/routes/resumeRouts.py
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends, Query
-from app.services.resumeService import upload_resume_service, get_resumes_service, get_presigned_url_service
+from app.services.resumeService import upload_resume_service, get_resumes_service, get_presigned_url_service, \
+    delete_all_resumes_service, delete_user_resume_service
 from app.utils.jwt import verify_token
 
 router = APIRouter()
@@ -61,3 +62,32 @@ async def get_user_resumes(
 
     resumes = get_resumes_service(user_id, skip, limit)
     return resumes
+
+
+@router.delete("/admin/delete_all", status_code=200)
+async def delete_all_resumes(token: dict = Depends(verify_token)):
+    """
+    Delete all resumes (Admin-only).
+    """
+    if not token.get("is_admin"):
+        raise HTTPException(status_code=403, detail="Only admins can perform this action.")
+
+    result = delete_all_resumes_service()
+    return result
+
+
+@router.delete("/{resume_id}", status_code=200)
+async def delete_user_resume(
+    resume_id: str,
+    token: dict = Depends(verify_token),
+):
+    """
+    Delete a specific resume uploaded by the user.
+    """
+    user_id = token.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid user.")
+
+    result = delete_user_resume_service(user_id, resume_id)
+    return result
+
