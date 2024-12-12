@@ -107,3 +107,41 @@ def search_resumes_by_title_service(user_id: str, title: str, skip: int = 0, lim
     for resume in resumes:
         resume["_id"] = str(resume["_id"])  # Convert ObjectId to string for JSON serialization
     return resumes
+
+
+def verify_password(password: str) -> bool:
+    """
+    Verifies if the password meets the following criteria:
+    1. At least 6 characters long.
+    2. Contains at least one uppercase letter.
+    3. Contains at least one special character (e.g., !).
+
+    :param password: The password string to verify.
+    :return: True if the password is valid, False otherwise.
+    """
+    # Define special characters
+    special_characters = "!@#$%^&*()-_=+[]{}|;:',.<>?/`~"
+
+    # Check for minimum length
+    if len(password) < 6:
+        return False
+
+    # Check for at least one uppercase letter
+    has_uppercase = False
+    for char in password:
+        if 'A' <= char <= 'Z':  # Check if char is uppercase
+            has_uppercase = True
+            break
+    if not has_uppercase:
+        return False
+
+    # Check for at least one special character
+    has_special_char = False
+    for char in password:
+        if char in special_characters:
+            has_special_char = True
+            break
+    if not has_special_char:
+        return False
+
+    return True

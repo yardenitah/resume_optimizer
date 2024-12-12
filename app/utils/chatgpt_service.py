@@ -2,6 +2,7 @@
 import openai
 import os
 from dotenv import load_dotenv
+import logging
 
 # Load environment variables
 load_dotenv()
@@ -70,17 +71,20 @@ async def calculate_match_score(resume_content: str, job_description: str, job_t
                     "role": "user",
                     "content": (
                         f"Please evaluate the following resume for the job title '{job_title}'. "
-                        f"Rate its suitability for the job description on a scale from 0 to 100.\n\n"
+                        f"Rate its suitability for the job description on a scale from 0 to 100. "
+                        f"Respond with the numerical score only.\n\n"
                         f"Resume Content:\n{resume_content}\n\n"
                         f"Job Description:\n{job_description}"
                     ),
                 },
             ],
-            max_tokens=2
+            max_tokens=5  # Small token limit for numerical score
         )
-        # Parse and return the score
-        analysis = response.choices[0].message.content.strip()
-        score = float(analysis.split("Score:")[-1].strip())  # Extract the score
-        return score
+        # Extract and convert the score
+        score_text = response.choices[0].message.content.strip()
+        print(f"score text: {score_text}\n all the response: \n \n {response.choices}")
+        return float(score_text)
     except Exception as e:
-        return -1.0  # Return a negative score if an error occurs
+        # Log the error and return a default negative score
+        logging.error(f"Error calculating match score: {str(e)}")
+        return -1.0

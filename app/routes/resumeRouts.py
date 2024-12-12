@@ -109,12 +109,7 @@ async def search_resumes_by_title(title: str = Query(..., description="Title to 
 
 
 @router.post("/{resume_id}/analyze", status_code=200)
-async def analyze_user_resume(
-        resume_id: str,
-        job_title: str = Form(...),
-        job_description: str = Form(...),
-        token: dict = Depends(verify_token),
-):
+async def analyze_user_resume(resume_id: str, job_title: str = Form(...), job_description: str = Form(...), token: dict = Depends(verify_token),):
     """
     Analyze a specific resume against a job description.
     """
@@ -134,11 +129,7 @@ async def analyze_user_resume(
 
 
 @router.post("/best-match", status_code=200)
-async def find_best_match(
-    token: dict = Depends(verify_token),
-    job_title: str = Form(..., description="Job title to evaluate against"),
-    job_description: str = Form(..., description="Job description to evaluate against"),
-):
+async def find_best_match(token: dict = Depends(verify_token), job_title: str = Form(..., description="Job title to evaluate against"),job_description: str = Form(..., description="Job description to evaluate against"),):
     """
     Find the best matching resume for a given job description.
     """
