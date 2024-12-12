@@ -20,7 +20,6 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # Set the API key
 openai.api_key = OPENAI_API_KEY
-print(f"OpenAI API Key: {OPENAI_API_KEY}\n\n")
 
 # Include routers
 app.include_router(usersRouts.router, prefix="/users", tags=["Users"])

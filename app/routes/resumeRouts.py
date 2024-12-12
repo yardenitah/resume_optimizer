@@ -1,7 +1,9 @@
 # app/routes/resumeRouts.py
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends, Query
 from app.services.resumeService import upload_resume_service, get_resumes_service, get_presigned_url_service, \
-    delete_all_resumes_service, delete_user_resume_service, search_resumes_by_title_service
+    delete_all_resumes_service, delete_user_resume_service, search_resumes_by_title_service, get_resume_by_id_service, \
+    find_best_resume_service
+from app.utils.chatgpt_service import analyze_resume
 from app.utils.jwt import verify_token
 
 router = APIRouter()
@@ -104,3 +106,45 @@ async def search_resumes_by_title(title: str = Query(..., description="Title to 
     results = search_resumes_by_title_service(user_id, title, skip, limit)
 
     return "No matches found" if len(results) == 0 else results
+
+
+@router.post("/{resume_id}/analyze", status_code=200)
+async def analyze_user_resume(
+        resume_id: str,
+        job_title: str = Form(...),
+        job_description: str = Form(...),
+        token: dict = Depends(verify_token),
+):
+    """
+    Analyze a specific resume against a job description.
+    """
+    user_id = token.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid user.")
+
+    # Fetch the resume content
+    resume = get_resume_by_id_service(user_id, resume_id)
+    if not resume:
+        raise HTTPException(status_code=404, detail="Resume not found or unauthorized access.")
+
+    # Call the analyze_resume function
+    analysis = await analyze_resume(resume["content"], job_description, job_title)
+
+    return {"analysis": analysis}
+
+
+@router.post("/best-match", status_code=200)
+async def find_best_match(
+    token: dict = Depends(verify_token),
+    job_title: str = Form(..., description="Job title to evaluate against"),
+    job_description: str = Form(..., description="Job description to evaluate against"),
+):
+    """
+    Find the best matching resume for a given job description.
+    """
+    user_id = token.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid user.")
+
+    result = await find_best_resume_service(user_id, job_description, job_title)
+    return result

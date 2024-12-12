@@ -24,8 +24,8 @@ users_collection = db['users']
 
 @router.post("/register", status_code=201)
 async def register(user: User):
-    user_id = register_service(user)
-    return {"message": "User registered successfully.", "user_id": user_id}
+    user_id, token = register_service(user)
+    return {"message": "User registered successfully.", "user_id": user_id, "token": token}
 
 
 @router.post("/login", status_code=200)

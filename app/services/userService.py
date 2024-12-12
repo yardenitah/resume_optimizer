@@ -27,6 +27,8 @@ def register_service(user_data: User):
     if existing_user:
         raise HTTPException(status_code=400, detail="A user with this email already exists.")
 
+    password = user_data.password
+
     # Hash the user's password securely
     hashed_password = pwd_context.hash(user_data.password)
     user_data.password = hashed_password
@@ -36,7 +38,9 @@ def register_service(user_data: User):
     if not result.inserted_id:
         raise HTTPException(status_code=500, detail="Failed to register the user.")
 
-    return str(result.inserted_id)
+    newUserToken = authenticate_user_service(user_data.email, password)
+
+    return str(result.inserted_id), newUserToken
 
 
 # use fir login
@@ -91,3 +95,15 @@ def update_user_service(user_id: str, updated_fields: dict):
     return result.modified_count
 
 
+def search_resumes_by_title_service(user_id: str, title: str, skip: int = 0, limit: int = 10):
+    """
+    Search resumes by title for a specific user.
+    """
+    query = {
+        "user_id": user_id,
+        "title": {"$regex": title, "$options": "i"}  # Case-insensitive search
+    }
+    resumes = list(resumes_collection.find(query).skip(skip).limit(limit))
+    for resume in resumes:
+        resume["_id"] = str(resume["_id"])  # Convert ObjectId to string for JSON serialization
+    return resumes

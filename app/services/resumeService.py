@@ -1,4 +1,5 @@
 # app/services/resumeService.py
+from app.utils.chatgpt_service import calculate_match_score
 from app.utils.file_extractor import extract_text_from_file
 from app.utils.s3_service import upload_file_to_s3, AWS_S3_BUCKET, generate_presigned_url, extract_file_key, s3_client
 from app.database.connection import MongoDBConnection
@@ -194,3 +195,71 @@ def search_resumes_by_title_service(user_id: str, title: str, skip: int = 0, lim
     for resume in resumes:
         resume["_id"] = str(resume["_id"])  # Convert ObjectId to string for JSON serialization
     return resumes
+
+
+def get_resume_by_id_service(user_id: str, resume_id: str):
+    """
+    Retrieve a specific resume by ID for a user.
+    """
+    try:
+        resume = resumes_collection.find_one({"_id": ObjectId(resume_id), "user_id": user_id})
+        if resume:
+            resume["_id"] = str(resume["_id"])  # Convert ObjectId to string
+        return resume
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching resume: {str(e)}")
+
+
+async def find_best_resume_service(user_id: str, job_description: str, job_title: str):
+    """
+    Find the best matching resume for a given job description and title.
+
+    Args:
+        user_id (str): The user's ID.
+        job_description (str): The job description.
+        job_title (str): The job title.
+
+    Returns:
+        dict: The best matching resume and its score.
+    """
+    # Retrieve all resumes for the user
+    resumes = list(resumes_collection.find({"user_id": user_id}))
+    if not resumes:
+        raise HTTPException(status_code=404, detail="No resumes found for the user.")
+
+    best_resume = None
+    highest_score = -1
+
+    for resume in resumes:
+        resume_content = resume.get("content", "")
+        if not resume_content:
+            continue  # Skip resumes without content
+
+        # Get the match score using ChatGPT
+        score = await calculate_match_score(resume_content, job_description, job_title)
+        resume["score"] = score  # Update the resume with the score
+
+        if score > highest_score:
+            highest_score = score
+            best_resume = resume
+
+    if not best_resume:
+        raise HTTPException(status_code=404, detail="No suitable resume found.")
+
+    return {
+        "best_resume": {
+            "id": str(best_resume["_id"]),
+            "title": best_resume["title"],
+            "score": best_resume["score"],
+            "s3_url": best_resume.get("s3_url"),
+        },
+        "all_resumes": [
+            {
+                "id": str(resume["_id"]),
+                "title": resume["title"],
+                "score": resume.get("score"),
+                "s3_url": resume.get("s3_url"),
+            }
+            for resume in resumes
+        ],
+    }
