@@ -55,3 +55,8 @@ python-multipart==0.0.6
 
 # AWS botocore dependency
 botocore~=1.31.85
+
+selenium==4.10.0
+PyPDF2==3.0.0
+webdriver-manager==4.0.1
+

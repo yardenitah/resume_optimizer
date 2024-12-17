@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordBearer
 from fastapi import FastAPI
 from dotenv import load_dotenv
 import os
-from app.routes import usersRouts, resumeRouts, adminRoutes
+from app.routes import usersRouts, resumeRouts, adminRoutes, jobRoutes
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -33,6 +33,7 @@ openai.api_key = OPENAI_API_KEY
 
 # Include routers
 app.include_router(usersRouts.router, prefix="/users", tags=["Users"])
+app.include_router(jobRoutes.router, prefix="/jobs", tags=["Jobs"])
 app.include_router(resumeRouts.router, prefix="/resumes", tags=["Resumes"])
 app.include_router(adminRoutes.router, prefix="/admin", tags=["Admin"])
 

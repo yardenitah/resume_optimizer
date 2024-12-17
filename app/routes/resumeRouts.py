@@ -10,11 +10,7 @@ router = APIRouter()
 
 
 @router.post("/upload", status_code=201)
-async def upload_resume(
-        token: dict = Depends(verify_token),
-        file: UploadFile = File(...),
-        title: str = Form(...),
-):
+async def upload_resume(token: dict = Depends(verify_token), file: UploadFile = File(...), title: str = Form(...), ):
     """
     Upload a resume file.
     """
@@ -33,11 +29,8 @@ async def upload_resume(
 
 
 @router.get("/{resume_id}/download", status_code=200)
-async def get_presigned_url(
-        resume_id: str,
-        expiration: int = Query(3600, ge=60, le=86400),
-        token: dict = Depends(verify_token),
-):
+async def get_presigned_url(resume_id: str, expiration: int = Query(3600, ge=60, le=86400),
+                            token: dict = Depends(verify_token), ):
     """
     Get a pre-signed URL to download or view a specific resume.
     """
@@ -50,11 +43,8 @@ async def get_presigned_url(
 
 
 @router.get("/", status_code=200)
-async def get_user_resumes(
-        token: dict = Depends(verify_token),
-        skip: int = Query(0, ge=0),
-        limit: int = Query(10, ge=1),
-):
+async def get_user_resumes(token: dict = Depends(verify_token), skip: int = Query(0, ge=0),
+                           limit: int = Query(10, ge=1), ):
     """
     Get all resumes uploaded by the authenticated user with pagination.
     """
@@ -79,10 +69,7 @@ async def delete_all_resumes(token: dict = Depends(verify_token)):
 
 
 @router.delete("/{resume_id}", status_code=200)
-async def delete_user_resume(
-        resume_id: str,
-        token: dict = Depends(verify_token),
-):
+async def delete_user_resume(resume_id: str, token: dict = Depends(verify_token), ):
     """
     Delete a specific resume uploaded by the user.
     """
@@ -95,7 +82,9 @@ async def delete_user_resume(
 
 
 @router.get("/search", status_code=200)
-async def search_resumes_by_title(title: str = Query(..., description="Title to search for"), token: dict = Depends(verify_token), skip: int = Query(0, ge=0), limit: int = Query(10, ge=1),):
+async def search_resumes_by_title(title: str = Query(..., description="Title to search for"),
+                                  token: dict = Depends(verify_token), skip: int = Query(0, ge=0),
+                                  limit: int = Query(10, ge=1), ):
     """
     Search resumes by title uploaded by the authenticated user.
     """
@@ -109,7 +98,8 @@ async def search_resumes_by_title(title: str = Query(..., description="Title to 
 
 
 @router.post("/{resume_id}/analyze", status_code=200)
-async def analyze_user_resume(resume_id: str, job_title: str = Form(...), job_description: str = Form(...), token: dict = Depends(verify_token),):
+async def analyze_user_resume(resume_id: str, job_title: str = Form(...), job_description: str = Form(...),
+                              token: dict = Depends(verify_token), ):
     """
     Analyze a specific resume against a job description.
     """
@@ -129,7 +119,9 @@ async def analyze_user_resume(resume_id: str, job_title: str = Form(...), job_de
 
 
 @router.post("/best-match", status_code=200)
-async def find_best_match(token: dict = Depends(verify_token), job_title: str = Form(..., description="Job title to evaluate against"),job_description: str = Form(..., description="Job description to evaluate against"),):
+async def find_best_match(token: dict = Depends(verify_token),
+                          job_title: str = Form(..., description="Job title to evaluate against"),
+                          job_description: str = Form(..., description="Job description to evaluate against"), ):
     """
     Find the best matching resume for a given job description.
     """

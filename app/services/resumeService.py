@@ -28,7 +28,8 @@ def upload_resume_service(user_id: str, file, title: str, file_extension: str):
     # Reset file pointer before uploading to S3
     file.seek(0)
     # Upload file to S3 and get the S3 URL
-    s3_url = upload_file_to_s3(file, user_id, file_extension)
+    # s3_url = upload_file_to_s3(file, user_id, file_extension)
+    s3_url = "https://Need to return the top line in the resumeService file"
 
     # Save metadata in MongoDB, including the S3 URL
     resume_data = {
