@@ -12,5 +12,18 @@ services:
       MONGO_INITDB_ROOT_USERNAME: admin  # Admin username
       MONGO_INITDB_ROOT_PASSWORD: admin123  # Admin password
 
+  resume_optimizer_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: resume_optimizer_api
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongodb
+    environment:
+      MONGO_URI: mongodb://admin:admin123@mongodb:27017  # MongoDB connection URI
+
 volumes:
   mongodb_data:

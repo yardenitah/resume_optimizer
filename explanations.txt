@@ -48,12 +48,11 @@ Project Structure Review :
 
 
 
-job-application-assistant/
+resume_optimizer/
 │
 ├── app/
 │   ├── __init__.py                 # Initialize the app package
-│   ├── main.py                     # Main entry point for the application
-│   ├── config.py                   # Configuration settings (e.g., DB, API keys)
+│   ├── main.py                     # Main entry point for the application                  # Configuration settings (e.g., DB, API keys)
 │   ├── models/                     # Tortoise ORM models
 │   │   ├── __init__.py
 │   │   ├── user.py                 # User model
@@ -95,3 +94,50 @@ job-application-assistant/
 ├── .env                            # Environment variables (e.g., API keys)
 ├── README.md                       # Project documentation
 └── setup.py                        # Project setup script
+
+
+
+
+
+resume_optimizer/
+│
+├── app/
+│   ├── __init__.py
+│   ├── main.py
+|   |── database/
+│   │   ├── __init__.py
+│   │   ├── conaction.py
+
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── user.py
+│   │   ├── resume.py
+│   │
+│   ├── routes/
+│   │   ├── __init__.py
+│   │   ├── adminRout.py
+│   │   ├── resumeRoutes.py
+│   │   ├── userRoutes.py
+│   │
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── resumeService.py
+│   │   ├── adminService.py
+│   │   ├── userService.py
+│   │
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   ├── admin_verification.py
+│   │   ├── s3_service.py
+│   │   ├── file_extractor.py
+│   │   ├── jwt.py
+│   │   ├── redis_utils.py
+│   │   ├── gpt_utils.py
+│   │   ├── validation.py
+│   │
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+├── .env
+├── .gitignore
+

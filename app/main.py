@@ -1,13 +1,11 @@
 # app/main.py
 import openai
-from fastapi.openapi.models import APIKey
-from fastapi.openapi.models import SecurityScheme
+from fastapi.middleware.cors import CORSMiddleware  # Import CORS middleware
 from fastapi.openapi.utils import get_openapi
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import FastAPI
 from dotenv import load_dotenv
 import os
-from app.database.connection import MongoDBConnection
 from app.routes import usersRouts, resumeRouts, adminRoutes
 
 # Load environment variables from the .env file
@@ -15,6 +13,18 @@ load_dotenv()
 
 # Initialize FastAPI app
 app = FastAPI()
+# Configure CORS
+origins = [
+    "http://localhost:3000",  # React frontend
+    "http://127.0.0.1:3000",  # Alternative local React frontend
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # Allow specified origins
+    allow_credentials=True,  # Allow cookies or authentication headers
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
 # Load OpenAI API key
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
