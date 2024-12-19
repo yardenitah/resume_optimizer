@@ -118,20 +118,22 @@ resume_optimizer/
 │   │   ├── adminRout.py
 │   │   ├── resumeRoutes.py
 │   │   ├── userRoutes.py
+│   │   ├── jobRoutes.py
 │   │
 │   ├── services/
 │   │   ├── __init__.py
 │   │   ├── resumeService.py
 │   │   ├── adminService.py
 │   │   ├── userService.py
+│   │   ├── jobService.py
 │   │
 │   ├── utils/
 │   │   ├── __init__.py
 │   │   ├── admin_verification.py
+│   │   ├── LinkedInManager.py
 │   │   ├── s3_service.py
 │   │   ├── file_extractor.py
 │   │   ├── jwt.py
-│   │   ├── redis_utils.py
 │   │   ├── gpt_utils.py
 │   │   ├── validation.py
 │   │
@@ -140,4 +142,3 @@ resume_optimizer/
 ├── requirements.txt
 ├── .env
 ├── .gitignore
-

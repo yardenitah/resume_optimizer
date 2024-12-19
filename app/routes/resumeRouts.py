@@ -24,6 +24,7 @@ async def upload_resume(token: dict = Depends(verify_token), file: UploadFile = 
     if file_extension not in allowed_extensions:
         raise HTTPException(status_code=400, detail="Unsupported file type.")
 
+
     res = upload_resume_service(user_id, file.file, title, file_extension)
     return res
 

@@ -1,6 +1,6 @@
 # app/routes/jobRoutes.py
 from fastapi import APIRouter, HTTPException, Depends, Form, Query
-from app.services.jobService import save_job_service, get_user_jobs_service
+from app.services.jobService import save_job_service, get_user_jobs_service, search_and_save_linkedin_jobs
 from app.services.resumeService import find_best_resume_service
 from app.utils.jwt import verify_token
 
@@ -49,3 +49,31 @@ async def get_user_jobs(token: dict = Depends(verify_token)):
 
     jobs = get_user_jobs_service(user_id)
     return jobs
+
+@router.post("/linkedin/search", status_code=200)
+async def search_and_save_jobs_in_linkedin(
+        linkedin_username: str = Form(...),
+        linkedin_password: str = Form(...),
+        experience_level: str = Form(...),
+        job_titles: list[str] = Form(...),
+        token: dict = Depends(verify_token)
+):
+    """
+    Search LinkedIn for jobs and save them to the database.
+    """
+    user_id = token.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Unauthorized.")
+
+    linkedin_username = 'yarden1606@gmail.com'
+    linkedin_password = 'yarden1169'
+    experience_level = 'entry level'
+    print("call to search_and_save_linkedin_jobs func in jobRoutes file \n\n")
+    saved_jobs = await search_and_save_linkedin_jobs(  # Add `await`
+        user_id=user_id,
+        username=linkedin_username,
+        password=linkedin_password,
+        experience_level=experience_level,
+        job_titles=job_titles,
+    )
+    return {"message": "Jobs searched and saved successfully.", "jobs": saved_jobs}
