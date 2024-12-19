@@ -207,55 +207,70 @@ class LinkedInManager:
     #
     #     except Exception as e:
     #         print(f"An error occurred while searching for jobs: {str(e).splitlines()[0]}")
-
     def get_job_details(self, job_listings):
-        print("start get_job_details function: \n")
+        print("Start get_job_details function:\n")
         job_details = []  # Collect all job details in this list
+
         try:
             for index, job in enumerate(job_listings):
-                if index > 0 and index % 10 == 0:
+                if index > 0 and index % 8 == 0:  # Scroll after processing 10 jobs
                     self.scroll_down_inWebPage("jobs-search-results-list")
                     time.sleep(2)
 
                 try:
-                    print(f"\ndetails for job number {index + 1}:\n")
+                    # Click the job to load its details
+                    job.click()
+                    time.sleep(3)  # Allow time for the job details to load
+
+                    # Extract company name
                     company_name_element = job.find_element(By.XPATH, ".//div[contains(@class, 'artdeco-entity-lockup__subtitle')]/span")
                     company_name = company_name_element.text.strip()
-                    print(f"Company Name: {company_name}")
 
+                    # Extract job link
                     job_element = job.find_element(By.XPATH, ".//a[contains(@class, 'job-card-container__link')]")
                     job_link = job_element.get_attribute('href')
-                    print(f"Job Link: {job_link}")
 
-                    job_description_element = self.driver.find_element(By.XPATH, "//div[contains(@class, 'jobs-box__html-content') and @id='job-details']")
+                    # Extract job description
+                    job_description_element = WebDriverWait(self.driver, 10).until(
+                        EC.presence_of_element_located(
+                            (By.XPATH, "//div[contains(@class, 'jobs-box__html-content') and @id='job-details']")
+                        )
+                    )
                     job_description = job_description_element.text.strip()
-                    print(f"Job Description: {job_description}\n")
 
+                    # Open job link in a new tab to extract title
                     self.driver.execute_script("window.open(arguments[0]);", job_link)
                     self.driver.switch_to.window(self.driver.window_handles[1])
-                    time.sleep(6)
+                    time.sleep(5)
 
-                    title_element = self.driver.find_element(By.CSS_SELECTOR, 'h1.t-24.t-bold.inline')
+                    # Extract job title
+                    title_element = WebDriverWait(self.driver, 10).until(
+                        EC.presence_of_element_located(
+                            (By.CSS_SELECTOR, 'h1.t-24.t-bold.inline')
+                        )
+                    )
                     title = title_element.text.strip()
-                    print(f"Job Title: {title}")
 
+                    # Close the tab and return to the main window
                     self.driver.close()
                     self.driver.switch_to.window(self.driver.window_handles[0])
-                    time.sleep(3)
+                    time.sleep(2)
 
                     # Append the job details as a tuple to the list
                     job_details.append((company_name, job_description, title, job_link))
 
+                    # Print all details in one line
+                    print(f"\n\nJob {index + 1}:\n Company: {company_name},\n Title: {title},\n Description: {job_description},\n Link: {job_link}")
                 except Exception as e:
-                    print(f"An error occurred while processing job {index + 1}: {e.args}")
+                    print(f"An error occurred while processing job {index + 1}: {e}")
                     if len(self.driver.window_handles) > 1:
                         self.driver.close()
                         self.driver.switch_to.window(self.driver.window_handles[0])
 
         except Exception as e:
-            print(f"An error occurred while searching for jobs: {str(e).splitlines()[0]}")
+            print(f"An error occurred while retrieving job details: {str(e).splitlines()[0]}")
 
-        return job_details  # Return all collected job details
+        return job_details
 
     def __search_easy_apply(self, user_description, job_listings, resume_text):
         print("start __search_easy_apply function: \n")
