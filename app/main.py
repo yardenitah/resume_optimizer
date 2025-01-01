@@ -27,7 +27,8 @@ app.add_middleware(
 )
 # Load OpenAI API key
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
+uri = os.getenv("MONGO_URI")
+print(uri)
 # Set the API key
 openai.api_key = OPENAI_API_KEY
 

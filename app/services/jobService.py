@@ -41,7 +41,7 @@ def get_user_jobs_service(user_id: str):
     return jobs
 
 
-async def search_and_save_linkedin_jobs(user_id: str, username: str, password: str, experience_level: str, job_titles: list):
+async def search_and_save_linkedin_jobs(user_id: str, username: str, password: str, experience_level: str, job_titles: list, maxNumberOfJobsTosearch):
     linkedin_manager = LinkedInManager.LinkedInManager(username, password, experience_level)
     print("call to LinkedInManager constructor successfully in jobService file \n\n")
 
@@ -51,14 +51,14 @@ async def search_and_save_linkedin_jobs(user_id: str, username: str, password: s
 
     # Search for jobs based on the provided job titles
     print("call to search_jobs_for_titles func \n\n")
-    job_results = linkedin_manager.search_jobs_for_titles(job_titles)
+    job_results = linkedin_manager.search_jobs_for_titles(job_titles, maxNumberOfJobsTosearch)
 
     saved_jobs = []
     for job in job_results:
         company_name, job_description, job_title, job_link = job
 
         # Find the best matching resume
-        best_resume_result = await find_best_resume_service(user_id, job_description, job_title)  # Add `await`
+        best_resume_result = await find_best_resume_service(user_id, job_description, job_title)
         best_resume_id = best_resume_result["best_resume"]["id"]
         print(f"best_resume_id: {best_resume_id}")
 
@@ -73,5 +73,24 @@ async def search_and_save_linkedin_jobs(user_id: str, username: str, password: s
         )
         saved_jobs.append(saved_job)
 
+
     linkedin_manager.logout()
     return saved_jobs
+
+
+def delete_user_jobs_service(user_id: str):
+    """Delete all jobs for a specific user."""
+    result = jobs_collection.delete_many({"user_id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="No jobs found to delete.")
+    return {"message": f"Deleted {result.deleted_count} jobs successfully."}
+
+
+def delete_job_by_id_service(user_id: str, job_id: str):
+    """
+    Delete a specific job by its ID for a given user.
+    """
+    result = jobs_collection.delete_one({"_id": ObjectId(job_id), "user_id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Job not found or not authorized to delete.")
+    return {"message": "Job deleted successfully."}

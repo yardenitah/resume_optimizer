@@ -32,7 +32,7 @@ class LinkedInManager:
         options.add_argument("user-agent=Mozilla/5.0")
 
         # Use the installed chromedriver
-        self.driver = webdriver.Chrome(service=Service("/opt/homebrew/bin/chromedriver"), options=options)
+        self.driver = webdriver.Chrome(service=Service("/usr/local/bin/chromedriver"), options=options)
 
         try:
             print("self.driver = webdriver.Chrome(options=options) OK !!")
@@ -91,7 +91,7 @@ class LinkedInManager:
 
         return self.num_ofJobs_added
 
-    def search_jobs_for_titles(self, job_titles: list):
+    def search_jobs_for_titles(self, job_titles: list, maxNumberOfJobsTosearch: int):
         if not self.isLogin:
             print("Not logged in. Please log in first.")
             return []
@@ -99,7 +99,7 @@ class LinkedInManager:
         all_jobs = []
         for job_title in job_titles:
             print(f"Searching jobs for: {job_title}")
-            job_listings = self.__get_job_list(job_title, False)
+            job_listings = self.__get_job_list(job_title, False, maxNumberOfJobsTosearch)
             if job_listings:
                 job_details = self.get_job_details(job_listings)
                 all_jobs.extend(job_details)  # Add all job details to the list
@@ -107,7 +107,7 @@ class LinkedInManager:
 
         return all_jobs  # Return the list of all job details
 
-    def __get_job_list(self, job_title, easyApply_filter):
+    def __get_job_list(self, job_title, easyApply_filter, maxNumberOfJobsTosearch):
         self.driver.get('https://www.linkedin.com/jobs/')
         job_listings = []
         try:
@@ -143,6 +143,8 @@ class LinkedInManager:
                                                            f"(//li[contains(@class, 'scaffold-layout__list-item') and @data-occludable-job-id])[{i}]")
                     job_listings.append(job_element)
                     i += 1
+                    if i > maxNumberOfJobsTosearch:
+                        break
 
                 except Exception as e:
                     print(f"{i}) No job element found, skipping.", "*" * 40)
@@ -158,55 +160,7 @@ class LinkedInManager:
             print(f"An error occurred in __get_job_list: {str(e).splitlines()[0]}")
             return []
 
-    # def get_job_details(self, job_listings):
-    #     print("start get_job_details function: \n")
-    #     try:
-    #         for index, job in enumerate(job_listings):
-    #             if index > 0 and index % 10 == 0:
-    #                 self.scroll_down_inWebPage("jobs-search-results-list")
-    #                 time.sleep(2)
-    #
-    #             try:
-    #                 # print("\n\n", job.get_attribute('outerHTML'), "\n\n")
-    #                 print(f"\ndetails for job number {index + 1}:\n")
-    #                 company_name_element = job.find_element(By.XPATH,".//div[contains(@class, 'artdeco-entity-lockup__subtitle')]/span")
-    #                 company_name = company_name_element.text.strip()
-    #                 print(f"Company Name: {company_name}")
-    #
-    #                 # Fixed line to locate the job title element
-    #                 job_element = job.find_element(By.XPATH, ".//a[contains(@class, 'job-card-container__link')]")
-    #
-    #                 job_link = job_element.get_attribute('href')
-    #                 print(f"Job Link: {job_link}")
-    #
-    #                 job_description_element = self.driver.find_element(By.XPATH,
-    #                                                                    "//div[contains(@class, 'jobs-box__html-content') and @id='job-details']")
-    #                 job_description = job_description_element.text.strip()
-    #                 print(f"Job Description: {job_description}\n")
-    #
-    #                 self.driver.execute_script("window.open(arguments[0]);", job_link)
-    #                 self.driver.switch_to.window(self.driver.window_handles[1])
-    #                 time.sleep(6)
-    #
-    #                 title_element = self.driver.find_element(By.CSS_SELECTOR, 'h1.t-24.t-bold.inline')
-    #                 title = title_element.text.strip()
-    #                 print(f"Job Title: {title}")
-    #
-    #                 self.driver.close()
-    #                 self.driver.switch_to.window(self.driver.window_handles[0])
-    #                 time.sleep(3)
-    #                 print(f"Job {index + 1} Details:\nCompany Name: {company_name}\nJob Title: {title}\n\n")
-    #
-    #                 return company_name, job_description, title, job_link
-    #
-    #             except Exception as e:
-    #                 print(f"An error occurred while processing job {index + 1}: {e.args}")
-    #                 if len(self.driver.window_handles) > 1:
-    #                     self.driver.close()
-    #                     self.driver.switch_to.window(self.driver.window_handles[0])
-    #
-    #     except Exception as e:
-    #         print(f"An error occurred while searching for jobs: {str(e).splitlines()[0]}")
+
     def get_job_details(self, job_listings):
         print("Start get_job_details function:\n")
         job_details = []  # Collect all job details in this list

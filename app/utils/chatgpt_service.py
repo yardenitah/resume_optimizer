@@ -82,7 +82,7 @@ async def calculate_match_score(resume_content: str, job_description: str, job_t
         )
         # Extract and convert the score
         score_text = response.choices[0].message.content.strip()
-        print(f"score text: {score_text}\n all the response: \n \n {response.choices}")
+        # print(f"score text: {score_text}\n all the response: \n \n {response.choices}")
         return float(score_text)
     except Exception as e:
         # Log the error and return a default negative score

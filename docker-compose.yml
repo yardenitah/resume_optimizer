@@ -23,7 +23,7 @@ services:
     depends_on:
       - mongodb
     environment:
-      MONGO_URI: mongodb://admin:admin123@mongodb:27017  # MongoDB connection URI
+      MONGO_URI: mongodb://admin:admin123@mongodb:27018  # MongoDB connection URI
 
 volumes:
   mongodb_data:
