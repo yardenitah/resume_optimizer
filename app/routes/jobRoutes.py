@@ -50,8 +50,8 @@ async def search_and_save_jobs_in_linkedin(linkedin_username: str = Form(...), l
     if not user_id:
         raise HTTPException(status_code=401, detail="Unauthorized.")
 
-    linkedin_username = 'yarden1606@gmail.com'
-    linkedin_password = 'yarden1169'
+    # linkedin_username = 'yarden1606@gmail.com'
+    # linkedin_password = 'yarden1169'
     experience_level = 'entry level'
     print("call to search_and_save_linkedin_jobs func in jobRoutes file \n\n")
     saved_jobs = await search_and_save_linkedin_jobs(

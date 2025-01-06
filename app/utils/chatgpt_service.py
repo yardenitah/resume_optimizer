@@ -1,5 +1,6 @@
 # app/utils/chatgpt_service.py
 import openai
+import asyncio
 import os
 from dotenv import load_dotenv
 import logging
@@ -11,20 +12,35 @@ load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
+# async def analyze_resume(resume_content: str, job_description: str, job_title: str) -> str:
+#     try:
+#         # Call OpenAI's ChatGPT API
+#         response = openai.ChatCompletion.create(
+#             model="gpt-4",
+#             messages=[
+#                 {"role": "system", "content": "You are an expert in evaluating resumes for job applications."},
+#                 {
+#                     "role": "user",
+#                     "content": (
+#                         f"Please analyze the following resume for the job title '{job_title}'. "
+#                         f"Provide feedback on how well it aligns with the job description "
+#                         f"and suggest improvements.\n\n"
+#                         f"Resume Content:\n{resume_content}\n\n"
+#                         f"Job Description:\n{job_description}"
+#                     ),
+#                 },
+#             ],
+#             max_tokens=90
+#         )
+#         # Return the AI-generated analysis
+#         return response.choices[0].message.content.strip()
+#     except Exception as e:
+#         # Handle exceptions
+#         return f"Failed to analyze resume: {str(e)}"
+
+
 async def analyze_resume(resume_content: str, job_description: str, job_title: str) -> str:
-    """
-    Analyze a resume against a job description using OpenAI's ChatGPT API.
-
-    Args:
-        resume_content (str): The content of the user's resume.
-        job_description (str): The job description to compare the resume against.
-        job_title (str): The title of the job.
-
-    Returns:
-        str: AI-generated analysis or suggestions.
-    """
     try:
-        # Call OpenAI's ChatGPT API
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
@@ -32,20 +48,22 @@ async def analyze_resume(resume_content: str, job_description: str, job_title: s
                 {
                     "role": "user",
                     "content": (
-                        f"Please analyze the following resume for the job title '{job_title}'. "
-                        f"Provide feedback on how well it aligns with the job description "
-                        f"and suggest improvements.\n\n"
-                        f"Resume Content:\n{resume_content}\n\n"
+                        f"Analyze this resume for the job title '{job_title}'. Provide feedback "
+                        f"on how it aligns with the job description and suggest improvements.\n\n"
+                        f"Resume:\n{resume_content}\n\n"
                         f"Job Description:\n{job_description}"
                     ),
                 },
             ],
-            max_tokens=50
+            max_tokens=100,
         )
-        # Return the AI-generated analysis
         return response.choices[0].message.content.strip()
+    except openai.error.RateLimitError:
+        logging.error("Rate limit reached. Retrying after a delay.")
+        await asyncio.sleep(2)  # Delay before retrying
+        return await analyze_resume(resume_content, job_description, job_title)
     except Exception as e:
-        # Handle exceptions
+        logging.error(f"Unexpected error: {e}")
         return f"Failed to analyze resume: {str(e)}"
 
 

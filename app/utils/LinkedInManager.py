@@ -121,9 +121,9 @@ class LinkedInManager:
             search_box.send_keys(Keys.RETURN)
             time.sleep(4)
 
-            if not self.__filterJobs(easyApply_filter):
-                print("No jobs were found with the required filters.")
-                return []
+            # if not self.__filterJobs(easyApply_filter):
+            #     print("No jobs were found with the required filters.")
+            #     return []
 
             # XPath to target all job list items
             job_listings_element = self.driver.find_elements(By.XPATH,
