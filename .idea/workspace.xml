@@ -6,10 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="71ec95b5-b9f3-4233-bf94-004a06ba38a6" name="Changes" comment="Add .gitignore to exclude unnecessary files and sensitive data">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/routes/jobRoutes.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/jobRoutes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/utils/LinkedInManager.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/utils/LinkedInManager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/utils/chatgpt_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/utils/chatgpt_service.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/explanations.txt" beforeDir="false" afterPath="$PROJECT_DIR$/explanations.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -118,7 +114,7 @@
       <workItem from="1735676597657" duration="2507000" />
       <workItem from="1735679124789" duration="6171000" />
       <workItem from="1735731452215" duration="10607000" />
-      <workItem from="1736168101565" duration="4976000" />
+      <workItem from="1736168101565" duration="5682000" />
     </task>
     <task id="LOCAL-00001" summary="Add .gitignore to exclude unnecessary files and sensitive data">
       <option name="closed" value="true" />
