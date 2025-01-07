@@ -38,6 +38,7 @@ class LinkedInManager:
             print("self.driver = webdriver.Chrome(options=options) OK !!")
             self.driver.get('https://www.linkedin.com/login')
             time.sleep(3)
+            print(f"Entering password is {self.password}\nEntering Username is {self.username}")
 
             try:
                 print(f"Attempting to log in as {self.username}...")
@@ -121,13 +122,12 @@ class LinkedInManager:
             search_box.send_keys(Keys.RETURN)
             time.sleep(4)
 
-            # if not self.__filterJobs(easyApply_filter):
-            #     print("No jobs were found with the required filters.")
-            #     return []
+            if not self.__filterJobs(easyApply_filter):
+                print("No jobs were found with the required filters.")
+                return []
 
             # XPath to target all job list items
-            job_listings_element = self.driver.find_elements(By.XPATH,
-                                                             "//li[contains(@class, 'scaffold-layout__list-item') and @data-occludable-job-id]")
+            job_listings_element = self.driver.find_elements(By.XPATH, "//li[contains(@class, 'scaffold-layout__list-item') and @data-occludable-job-id]")
             job_listings_len = len(job_listings_element)
             print(f'len of job_listings_element: {job_listings_len}')
             if job_listings_len == 0:
@@ -139,8 +139,7 @@ class LinkedInManager:
             while i <= job_listings_len:
                 try:
                     # Use `find_element` instead of `find_elements` for a single element and correct the XPath
-                    job_element = self.driver.find_element(By.XPATH,
-                                                           f"(//li[contains(@class, 'scaffold-layout__list-item') and @data-occludable-job-id])[{i}]")
+                    job_element = self.driver.find_element(By.XPATH, f"(//li[contains(@class, 'scaffold-layout__list-item') and @data-occludable-job-id])[{i}]")
                     job_listings.append(job_element)
                     i += 1
                     if i > maxNumberOfJobsTosearch:
@@ -150,16 +149,15 @@ class LinkedInManager:
                     print(f"{i}) No job element found, skipping.", "*" * 40)
                     break  # Exit the loop if no element is found
             if easyApply_filter:
-                print(f"found {len(job_listings)} jobs for {job_title} and easyApply_filter")
+                print(f"found {len(job_listings)} jobs for {job_title} with easyApply_filter")
             else:
-                print(f"found {len(job_listings)} jobs for {job_title} and easyApply_filter")
+                print(f"found {len(job_listings)} jobs for {job_title} without easyApply_filter")
 
             return job_listings
 
         except Exception as e:
             print(f"An error occurred in __get_job_list: {str(e).splitlines()[0]}")
             return []
-
 
     def get_job_details(self, job_listings):
         print("Start get_job_details function:\n")
@@ -396,6 +394,11 @@ class LinkedInManager:
         return close_chet(), hr_name
 
     def __filterJobs(self, easyApply_filter):
+        # Verify experience level filter is working
+        if not self.__experience_level(self.experienceLevel):
+            print("No jobs found matching the experience level.")
+            return False
+        time.sleep(2)
         # For 24 hours, remove the comment from the line below
         # self.__jobs_published_last_24_hours()
         # time.sleep(2)
@@ -405,12 +408,6 @@ class LinkedInManager:
         #     return False
         # time.sleep(2)
 
-        # Verify experience level filter is working
-        if not self.__experience_level(self.experienceLevel):
-            print("No jobs found matching the experience level.")
-            return False
-        time.sleep(2)
-
         # Toggle easy apply filter if needed
         if (easyApply_filter and not self.easyApplyState) or (not easyApply_filter and self.easyApplyState):
             if not self.__turns_off_and_on_easy_apply():
@@ -419,48 +416,48 @@ class LinkedInManager:
 
         return True
 
-    def locate_scrollable_element(self, element):
-        try:
-            # Try locating by class name first
-            return WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.CLASS_NAME, element))
-            )
-        except Exception:
-            try:
-                # If class name fails, try locating by XPath
-                return WebDriverWait(self.driver, 10).until(
-                    EC.presence_of_element_located((By.XPATH, element))
-                )
-            except Exception as e:
-                print(f"Failed to locate element: {str(e).splitlines()[0]}")
-                return None
-
-    def scroll_upDown_inWebPage(self, element):
-        scrollable_div = self.locate_scrollable_element(element)
-        if scrollable_div:
-            self.scroll_down_inWebPage(scrollable_div)
-            time.sleep(2)
-            self.scroll_up_inWebPage(scrollable_div)
-
-    def scroll_down_inWebPage(self, scrollable_div):
-        self.driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", scrollable_div)
-        time.sleep(2)
-
-    def scroll_up_inWebPage(self, scrollable_div):
-        self.driver.execute_script("arguments[0].scrollTop = 0", scrollable_div)
-        time.sleep(2)
-
-    def scroll_to_middle_inWebPage(self, element):
-        scrollable_div = self.locate_scrollable_element(element)
-        if scrollable_div:
-            self.driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight / 2", scrollable_div)
-            time.sleep(2)
-
-    def scroll_to_quarter_inWebPage(self, element):
-        scrollable_div = self.locate_scrollable_element(element)
-        if scrollable_div:
-            self.driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight / 2", scrollable_div)
-            time.sleep(2)
+    # def locate_scrollable_element(self, element):
+    #     try:
+    #         # Try locating by class name first
+    #         return WebDriverWait(self.driver, 10).until(
+    #             EC.presence_of_element_located((By.CLASS_NAME, element))
+    #         )
+    #     except Exception:
+    #         try:
+    #             # If class name fails, try locating by XPath
+    #             return WebDriverWait(self.driver, 10).until(
+    #                 EC.presence_of_element_located((By.XPATH, element))
+    #             )
+    #         except Exception as e:
+    #             print(f"Failed to locate element: {str(e).splitlines()[0]}")
+    #             return None
+    #
+    # def scroll_upDown_inWebPage(self, element):
+    #     scrollable_div = self.locate_scrollable_element(element)
+    #     if scrollable_div:
+    #         self.scroll_down_inWebPage(scrollable_div)
+    #         time.sleep(2)
+    #         self.scroll_up_inWebPage(scrollable_div)
+    #
+    # def scroll_down_inWebPage(self, scrollable_div):
+    #     self.driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", scrollable_div)
+    #     time.sleep(2)
+    #
+    # def scroll_up_inWebPage(self, scrollable_div):
+    #     self.driver.execute_script("arguments[0].scrollTop = 0", scrollable_div)
+    #     time.sleep(2)
+    #
+    # def scroll_to_middle_inWebPage(self, element):
+    #     scrollable_div = self.locate_scrollable_element(element)
+    #     if scrollable_div:
+    #         self.driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight / 2", scrollable_div)
+    #         time.sleep(2)
+    #
+    # def scroll_to_quarter_inWebPage(self, element):
+    #     scrollable_div = self.locate_scrollable_element(element)
+    #     if scrollable_div:
+    #         self.driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight / 2", scrollable_div)
+    #         time.sleep(2)
 
     def __connectToHR(self):
         try:
@@ -806,6 +803,11 @@ class LinkedInManager:
 
     def __experience_level(self, level):
         try:
+            print(f"Experience level from __experience_level function: {level}")
+            # Skip filtering if "no filter" is provided
+            if level == "no filter":
+                print("No filter applied for experience level.")
+                return True
             # Locate the button by its ID and click it
             experience_level_button = WebDriverWait(self.driver, 5).until(
                 EC.element_to_be_clickable((By.XPATH, "//button[@id='searchFilter_experience']"))
@@ -839,7 +841,7 @@ class LinkedInManager:
                 # associate_level_checkbox.click()
                 # time.sleep(1)
                 # print("Selected 'Associate level' filter")
-            else:
+            elif level == 'mid-senior':
                 # Click on "Mid-Senior level" checkbox
                 mid_senior_checkbox = WebDriverWait(self.driver, 5).until(
                     EC.element_to_be_clickable((By.XPATH, "//input[@id='experience-4']/following-sibling::label"))
@@ -868,22 +870,6 @@ class LinkedInManager:
             print(f"An error occurred: {str(e).splitlines()[0]}")
             return False
 
-    def __try_click_buttons(self, xpaths):
-        """Try to find and click a button from a list of possible XPaths."""
-        for i, xpath in enumerate(xpaths):
-            try:
-                button = WebDriverWait(self.driver, 5).until(
-                    EC.element_to_be_clickable((By.XPATH, xpath))
-                )
-                button.click()
-                time.sleep(3)
-                print(f"Clicked with Xpath {i + 1}\n")
-                return True
-            except Exception as e:
-                print(
-                    f"Failed to click button number {i + 1} for XPath ending with: {xpath[-20:]}, Error: {str(e).splitlines()[0]}\n")
-                continue
-        return False
 
     def __select_yes_for_uniface_experience(self, answer="Yes"):
         try:

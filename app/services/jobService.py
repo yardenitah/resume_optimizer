@@ -1,4 +1,7 @@
 # app/services/jobService.py
+import time
+from typing import Optional
+
 from app.database.connection import MongoDBConnection
 from app.models.job import Job
 from bson import ObjectId
@@ -41,7 +44,7 @@ def get_user_jobs_service(user_id: str):
     return jobs
 
 
-async def search_and_save_linkedin_jobs(user_id: str, username: str, password: str, experience_level: str, job_titles: list, maxNumberOfJobsTosearch):
+async def search_and_save_linkedin_jobs_service(user_id: str, username: str, password: str, experience_level: Optional[str], job_titles: list, maxNumberOfJobsTosearch: int):
     linkedin_manager = LinkedInManager.LinkedInManager(username, password, experience_level)
     print("call to LinkedInManager constructor successfully in jobService file \n\n")
 
@@ -59,6 +62,7 @@ async def search_and_save_linkedin_jobs(user_id: str, username: str, password: s
 
         # Find the best matching resume
         best_resume_result = await find_best_resume_service(user_id, job_description, job_title)
+        time.sleep(1)
         best_resume_id = best_resume_result["best_resume"]["id"]
         print(f"best_resume_id: {best_resume_id}")
 

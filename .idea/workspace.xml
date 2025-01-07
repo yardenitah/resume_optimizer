@@ -6,6 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="71ec95b5-b9f3-4233-bf94-004a06ba38a6" name="Changes" comment="Add .gitignore to exclude unnecessary files and sensitive data">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/models/resume.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/models/resume.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/routes/jobRoutes.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/jobRoutes.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/routes/usersRouts.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/usersRouts.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/services/jobService.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/services/jobService.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/utils/LinkedInManager.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/utils/LinkedInManager.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,7 +33,7 @@
     <option name="stateVersion" value="1" />
   </component>
   <component name="ProblemsViewState">
-    <option name="selectedTabId" value="QODANA_PROBLEMS_VIEW_TAB" />
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 4
@@ -114,7 +119,7 @@
       <workItem from="1735676597657" duration="2507000" />
       <workItem from="1735679124789" duration="6171000" />
       <workItem from="1735731452215" duration="10607000" />
-      <workItem from="1736168101565" duration="5682000" />
+      <workItem from="1736168101565" duration="31416000" />
     </task>
     <task id="LOCAL-00001" summary="Add .gitignore to exclude unnecessary files and sensitive data">
       <option name="closed" value="true" />
@@ -153,37 +158,12 @@
           <line>225</line>
           <option name="timeStamp" value="5" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/app/routes/usersRouts.py</url>
-          <line>26</line>
-          <option name="timeStamp" value="7" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/app/utils/LinkedInManager.py</url>
-          <line>24</line>
-          <option name="timeStamp" value="8" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/app/utils/LinkedInManager.py</url>
-          <line>81</line>
-          <option name="timeStamp" value="9" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/app/utils/LinkedInManager.py</url>
-          <line>93</line>
-          <option name="timeStamp" value="10" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/app/utils/LinkedInManager.py</url>
-          <line>109</line>
-          <option name="timeStamp" value="11" />
-        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/resume_optimizer$main.coverage" NAME="main Coverage Results" MODIFIED="1736087509528" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/app" />
     <SUITE FILE_PATH="coverage/resume_optimizer$Unnamed.coverage" NAME="Unnamed Coverage Results" MODIFIED="1736087455611" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
-    <SUITE FILE_PATH="coverage/resume_optimizer$resume_optimizer.coverage" NAME="resume_optimizer Coverage Results" MODIFIED="1736178613834" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/resume_optimizer$resume_optimizer.coverage" NAME="resume_optimizer Coverage Results" MODIFIED="1736271319544" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
   </component>
 </project>

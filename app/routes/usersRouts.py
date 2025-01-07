@@ -3,6 +3,7 @@ from typing import Optional
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Depends, Header, Query
 from pydantic import EmailStr
+from pydantic import BaseModel
 
 from app.models.user import User
 from app.database.connection import MongoDBConnection
@@ -22,17 +23,37 @@ db = db_connection.get_database()
 users_collection = db['users']
 
 
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+
 @router.post("/register", status_code=201)
 async def register(user: User):
     user_id, token = register_service(user)
     return {"message": "User registered successfully.", "user_id": user_id, "token": token}
 
 
+# @router.post("/login", status_code=200)
+# async def login(email: EmailStr, password: str):
+#     """ Authenticate a user and return a JWT token. """
+#     print("Received email:", email)
+#     print("Received password:", password)
+#     token_data = authenticate_user_service(email, password)
+#     return token_data
+
+
 @router.post("/login", status_code=200)
-async def login(email: EmailStr, password: str):
+async def login(login_request: LoginRequest):
     """ Authenticate a user and return a JWT token. """
+    email = login_request.email
+    password = login_request.password
+    print("Received email:", email)
+    print("Received password:", password)
     token_data = authenticate_user_service(email, password)
     return token_data
+
 
 
 # DELETE !!

@@ -1,6 +1,6 @@
 # app/routes/jobRoutes.py
 from fastapi import APIRouter, HTTPException, Depends, Form, Query
-from app.services.jobService import save_job_service, get_user_jobs_service, search_and_save_linkedin_jobs, \
+from app.services.jobService import save_job_service, get_user_jobs_service, search_and_save_linkedin_jobs_service, \
     delete_user_jobs_service, delete_job_by_id_service
 from app.services.resumeService import find_best_resume_service
 from app.utils.jwt import verify_token
@@ -51,10 +51,18 @@ async def search_and_save_jobs_in_linkedin(linkedin_username: str = Form(...), l
         raise HTTPException(status_code=401, detail="Unauthorized.")
 
     # linkedin_username = 'yarden1606@gmail.com'
-    # linkedin_password = 'yarden1169'
-    experience_level = 'entry level'
+    linkedin_password = 'yarden1169'
+
+    # Retain "no filter" value and normalize other values to lowercase
+    experience_level = experience_level.lower()
+    # Validate experience level
+    valid_levels = {'no filter', 'entry level', 'mid-senior'}
+    if experience_level not in valid_levels:
+        raise HTTPException(status_code=400, detail=f"Invalid experience level: {experience_level}")
+    print(f"\nExperience level received: {experience_level}")
+
     print("call to search_and_save_linkedin_jobs func in jobRoutes file \n\n")
-    saved_jobs = await search_and_save_linkedin_jobs(
+    saved_jobs = await search_and_save_linkedin_jobs_service(
         user_id=user_id,
         username=linkedin_username,
         password=linkedin_password,
