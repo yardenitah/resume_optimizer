@@ -1,7 +1,13 @@
 # app/routes/jobRoutes.py
 from fastapi import APIRouter, HTTPException, Depends, Form, Query
-from app.services.jobService import save_job_service, get_user_jobs_service, search_and_save_linkedin_jobs_service, \
-    delete_user_jobs_service, delete_job_by_id_service
+from app.services.jobService import (
+    save_job_service,
+    get_user_jobs_service,
+    search_and_save_linkedin_jobs_service,
+    delete_user_jobs_service,
+    delete_job_by_id_service,
+    search_jobs_by_title_service,
+)
 from app.services.resumeService import find_best_resume_service
 from app.utils.jwt import verify_token
 
@@ -98,3 +104,16 @@ async def delete_job_by_id(job_id: str, token: dict = Depends(verify_token)):
     result = delete_job_by_id_service(user_id, job_id)
     return result
 
+
+@router.get("/search", status_code=200)
+async def search_jobs_by_title(title: str = Query(..., description="Title of the job to search for"), token: dict = Depends(verify_token),
+):
+    """
+    Search for jobs by title for the authenticated user.
+    """
+    user_id = token.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Unauthorized.")
+
+    jobs = search_jobs_by_title_service(user_id, title)
+    return jobs

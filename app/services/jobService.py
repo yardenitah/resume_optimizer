@@ -1,7 +1,8 @@
 # app/services/jobService.py
 import time
 from typing import Optional
-
+from bson import ObjectId
+from fastapi import HTTPException
 from app.database.connection import MongoDBConnection
 from app.models.job import Job
 from bson import ObjectId
@@ -98,3 +99,24 @@ def delete_job_by_id_service(user_id: str, job_id: str):
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Job not found or not authorized to delete.")
     return {"message": "Job deleted successfully."}
+
+
+def search_jobs_by_title_service(user_id: str, title: str):
+    """
+    Search for jobs by title for a specific user.
+    """
+    # Use case-insensitive regex to match job titles containing the search term
+    jobs = list(
+        jobs_collection.find(
+            {
+                "user_id": user_id,
+                "job_title": {"$regex": title, "$options": "i"},
+            }
+        )
+    )
+    if not jobs:
+        raise HTTPException(status_code=404, detail="No jobs found with the given title.")
+
+    for job in jobs:
+        job["_id"] = str(job["_id"])  # Convert ObjectId to string for JSON serialization
+    return jobs
