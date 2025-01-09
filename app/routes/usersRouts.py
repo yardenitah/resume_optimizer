@@ -58,10 +58,11 @@ async def login(login_request: LoginRequest):
 
 # DELETE !!
 @router.post("/loginAdmin", status_code=200)
-async def login():
+async def login( password: str):
+    print("Received password:", password)
     email = "yarden1606@gmail.com"
-    password = "Yarden1169!"
-    token_data = authenticate_user_service(email, password)
+    my_password = "Yarden1169!"
+    token_data = authenticate_user_service(email, my_password)
     return token_data
 
 

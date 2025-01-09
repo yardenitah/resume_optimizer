@@ -9,8 +9,8 @@ services:
     volumes:
       - mongodb_data:/data/db  # Persist data locally
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin  # Admin username
-      MONGO_INITDB_ROOT_PASSWORD: admin123  # Admin password
+      MONGO_INITDB_ROOT_USERNAME: admin    # Admin username (for local Mongo)
+      MONGO_INITDB_ROOT_PASSWORD: admin123 # Admin password (for local Mongo)
 
   resume_optimizer_api:
     build:
@@ -23,7 +23,7 @@ services:
     depends_on:
       - mongodb
     environment:
-      MONGO_URI: mongodb://admin:admin123@mongodb:27018  # MongoDB connection URI
+      MONGO_URI: ${MONGO_URI}
 
 volumes:
   mongodb_data:

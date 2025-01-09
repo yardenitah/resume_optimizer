@@ -60,7 +60,7 @@ async def analyze_resume(resume_content: str, job_description: str, job_title: s
         return response.choices[0].message.content.strip()
     except openai.error.RateLimitError:
         logging.error("Rate limit reached. Retrying after a delay.")
-        await asyncio.sleep(2)  # Delay before retrying
+        await asyncio.sleep(3)  # Delay before retrying
         return await analyze_resume(resume_content, job_description, job_title)
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
