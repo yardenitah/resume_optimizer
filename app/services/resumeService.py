@@ -13,6 +13,7 @@ db = db_connection.get_database()
 resumes_collection = db["resumes"]
 
 
+
 def upload_resume_service(user_id: str, file, title: str, file_extension: str):
     """
     Handle the uploading of a resume file.
@@ -30,12 +31,13 @@ def upload_resume_service(user_id: str, file, title: str, file_extension: str):
     # Upload file to S3 and get the S3 URL
     s3_url = upload_file_to_s3(file, user_id, file_extension)
 
-    # Save metadata in MongoDB, including the S3 URL
+    # Save metadata in MongoDB, including the S3 URL and initialize job_ids
     resume_data = {
         "user_id": user_id,
         "title": title,
         "content": text_content,  # Save extracted text here
         "s3_url": s3_url,  # Save the S3 URL here
+        "job_ids": [],       # Initialize job_ids as an empty list
         "created_at": datetime.utcnow(),
     }
     result = resumes_collection.insert_one(resume_data)
@@ -118,43 +120,11 @@ def get_all_user_resumes_service(user_id: str, skip: int = 0, limit: int = 10):
     return resumes
 
 
-def delete_all_resumes_service():
-    """
-    Delete all resumes from both the database and S3 (Admin only).
-    """
-    # Fetch all resumes from MongoDB to extract S3 file keys
-    all_resumes = resumes_collection.find()
-    file_keys = []
-
-    # Extract the file keys from S3 URLs
-    for resume in all_resumes:
-        s3_url = resume.get("s3_url")
-        if s3_url:
-            try:
-                file_key = extract_file_key(s3_url)
-                file_keys.append(file_key)
-            except ValueError as e:
-                print(f"Invalid S3 URL format: {s3_url}, Error: {str(e)}")  # Log invalid URLs
-
-    # Delete files from S3
-    if file_keys:
-        try:
-            delete_objects = [{"Key": key} for key in file_keys]
-            s3_client.delete_objects(
-                Bucket=AWS_S3_BUCKET,
-                Delete={"Objects": delete_objects}
-            )
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to delete files from S3: {str(e)}")
-
-    # Delete all records from MongoDB
-    result = resumes_collection.delete_many({})
-    return {"message": f"Deleted {result.deleted_count} resumes from MongoDB and corresponding files from S3."}
-
-
 def delete_user_resume_service(user_id: str, resume_id: str):
     """
-    Delete a specific resume uploaded by the user.
+    Delete a specific resume uploaded by the user,
+    and if it was the best resume for any job,
+    remove that reference from the job.
     """
     try:
         resume = resumes_collection.find_one({"_id": ObjectId(resume_id), "user_id": user_id})
@@ -176,7 +146,15 @@ def delete_user_resume_service(user_id: str, resume_id: str):
         if result.deleted_count == 0:
             raise HTTPException(status_code=500, detail="Failed to delete resume from database.")
 
+        # NEW: If this resume was the best_resume_id for any jobs, remove that reference.
+        from app.services.jobService import jobs_collection  # or import at top of file
+        jobs_collection.update_many(
+            {"best_resume_id": str(resume_id)},
+            {"$unset": {"best_resume_id": ""}}
+        )
+
         return {"message": "Resume deleted successfully."}
+
     except InvalidId:
         raise HTTPException(status_code=400, detail="Invalid resume ID.")
     except Exception as e:
@@ -263,3 +241,68 @@ async def find_best_resume_service(user_id: str, job_description: str, job_title
             for resume in resumes
         ],
     }
+
+
+def add_job_to_resume_service(resume_id: str, job_id: str):
+    """
+    Associate a Job ID with a Resume by updating the Resume's job_ids list.
+    """
+    try:
+        result = resumes_collection.update_one(
+            {"_id": ObjectId(resume_id)},
+            {"$addToSet": {"job_ids": job_id}}  # Use $addToSet to avoid duplicates
+        )
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Resume not found.")
+        if result.modified_count == 0:
+            print(f"Job ID {job_id} was already associated with Resume ID {resume_id}.")
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid resume ID.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to associate job with resume: {str(e)}")
+
+
+def remove_job_from_resume_service(resume_id: str, job_id: str):
+    """
+    Remove a Job ID from a Resume's job_ids list.
+    """
+    try:
+        result = resumes_collection.update_one(
+            {"_id": ObjectId(resume_id)},
+            {"$pull": {"job_ids": job_id}}  # $pull removes the item from the array
+        )
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Resume not found.")
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Job ID not associated with this resume.")
+        return {"message": f"Job ID {job_id} removed from Resume ID {resume_id} successfully."}
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid resume ID.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to remove job from resume: {str(e)}")
+
+async def get_jobs_id_of_resume_service(user_id: str, resume_id: str) -> list:
+    """
+    Retrieve the list of Job IDs associated with a specific Resume.
+
+    Args:
+        user_id (str): ID of the user.
+        resume_id (str): ID of the resume.
+
+    Returns:
+        list: List of associated Job IDs.
+    """
+    try:
+        # Fetch the resume document from MongoDB
+        resume = resumes_collection.find_one({"_id": ObjectId(resume_id), "user_id": user_id})
+
+        if not resume:
+            raise HTTPException(status_code=404, detail="Resume not found or unauthorized access.")
+
+        # Return the job_ids field
+        return resume.get("job_ids", [])
+
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid resume ID.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch job IDs: {str(e)}")

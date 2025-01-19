@@ -23,7 +23,7 @@ services:
     depends_on:
       - mongodb
     environment:
-      MONGO_URI: ${MONGO_URI}
+      MONGO_URI: "mongodb+srv://admin-yarden:Yarden1169@cluster0.z9ikx3b.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
 volumes:
   mongodb_data:

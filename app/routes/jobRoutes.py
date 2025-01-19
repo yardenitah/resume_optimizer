@@ -1,5 +1,5 @@
 # app/routes/jobRoutes.py
-from fastapi import APIRouter, HTTPException, Depends, Form, Query
+from fastapi import APIRouter, HTTPException, Depends, Form, Query, BackgroundTasks
 from app.services.jobService import (
     save_job_service,
     get_user_jobs_service,
@@ -10,6 +10,8 @@ from app.services.jobService import (
 )
 from app.services.resumeService import find_best_resume_service
 from app.utils.jwt import verify_token
+import asyncio
+from fastapi.concurrency import run_in_threadpool
 
 router = APIRouter()
 
@@ -48,6 +50,7 @@ async def get_user_jobs(token: dict = Depends(verify_token)):
 
     jobs = get_user_jobs_service(user_id)
     return jobs
+
 
 @router.post("/linkedin/search", status_code=200)
 async def search_and_save_jobs_in_linkedin(linkedin_username: str = Form(...), linkedin_password: str = Form(...), experience_level: str = Form(...), job_titles: list[str] = Form(...), maxNumberOfJobsTosearch: int = Form(100), token: dict = Depends(verify_token)):

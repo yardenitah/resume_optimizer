@@ -1,4 +1,4 @@
-# app/main.py
+# /Users/yardenmac/Desktop/Software/Pycharm/resume_optimizer/app/main.py
 import openai
 from fastapi.middleware.cors import CORSMiddleware  # Import CORS middleware
 from fastapi.openapi.utils import get_openapi
