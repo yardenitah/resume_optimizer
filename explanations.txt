@@ -1,51 +1,11 @@
 explanations.txt
 to open swagger : http://127.0.0.1:8000/docs
-Kerem035@gmail.com
-kerem2549
-Industrial Engineering and Management Student
 
-fix admin routs from gpt,
+for connect ec2 :
+ssh -i "/Users/yardenmac/Desktop/Software/Pycharm/resume_optimizer/resume_optimizer.pem" ec2-user@52.59.187.192
+then :
+cd /home/ec2-user/resume_optimizer
 
-
-Project Structure Review :
-    1. app/:
-        .   config/: Likely for configuration files, e.g., database, API keys, etc. Good separation of concerns.
-
-        .   controllers/: A great place for routing and handling HTTP requests. Typically contains the logic to process inputs and outputs.
-
-        .   models/: Excellent for defining database schemas or domain models. Use SQLAlchemy or Pydantic for data validation and persistence.
-
-        .   nlp/: Focused on Natural Language Processing tasks. This seems to be where your ChatGPT API-related functions might go, which is logical.
-
-        .   services/: For business logic or reusable services. Keeps controllers lightweight and clean.
-
-        .   storage/: Good for handling file uploads, AWS S3 integration, or any storage-related operations.
-
-
-    2. docker/:
-       .    Storing Docker-related files like Dockerfile and docker-compose.yml is a best practice. It ensures containerization setup is modular and easy to maintain.
-
-
-    3. scripts/:
-       .    Useful for one-time tasks like database migrations, seeders, or utilities. Helps to keep your main codebase clean.
-
-
-    4. tests/:
-        .   Organized space for your unit tests, integration tests, and other test files. Essential for maintaining code quality.
-
-
-    5. Root Files:
-        .   .env: Stores environment variables (e.g., API keys, database URLs). Remember to add .env to .gitignore for security.
-
-        .   .gitignore: Excellent for excluding unnecessary or sensitive files from your Git repository.
-
-        .   requirements.txt: A clear list of dependencies. Use tools like pip freeze > requirements.txt to update it.
-
-    6. main.py:
-        .   Likely the entry point of your application. This is a common and clean convention.
-
-    7. test_main.http:
-        .   Appears to be an HTTP test file for APIs, which is helpful for manual or automated testing during development.
 
 
 

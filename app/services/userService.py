@@ -29,6 +29,10 @@ def register_service(user_data: User):
 
     password = user_data.password
 
+    # Verify the password strength
+    if not verify_password(password):
+        raise HTTPException(status_code=400, detail="Password does not meet the required criteria: \nat least 6 characters, one uppercase letter, and one special character.")
+
     # Hash the user's password securely
     hashed_password = pwd_context.hash(user_data.password)
     user_data.password = hashed_password

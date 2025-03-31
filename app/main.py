@@ -11,35 +11,52 @@ from app.routes import usersRouts, resumeRouts, adminRoutes, jobRoutes
 # Load environment variables from the .env file
 load_dotenv()
 
-# Initialize FastAPI app
+# Initialize FastAPI
 app = FastAPI()
 # Configure CORS
 origins = [
+    "http://resume-optimizer-resumes.s3-website.eu-central-1.amazonaws.com",
+    "https://resume-optimizer-resumes.s3-website.eu-central-1.amazonaws.com",
     "http://localhost:3000",  # React frontend
     "http://127.0.0.1:3000",  # Alternative local React frontend
+    "https://d3n5er3xfm3yco.cloudfront.net" # cloud front domain
 ]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # Allow specified origins
-    allow_credentials=True,  # Allow cookies or authentication headers
-    allow_methods=["*"],  # Allow all HTTP methods
-    allow_headers=["*"],  # Allow all headers
+    allow_origins=origins,  # Allows all origins
+    allow_credentials=False,  # Must be False if allow_origins=["*"]
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
 )
+
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=[
+#         "http://resume-optimizer-resumes.s3-website.eu-central-1.amazonaws.com",
+#         "https://resume-optimizer-resumes.s3-website.eu-central-1.amazonaws.com",
+#         "http://localhost:3000",
+#         "http://127.0.0.1:3000",
+#         "https://d3n5er3xfm3yco.cloudfront.net"
+#     ],
+#     allow_credentials=True,   # IMPORTANT
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+
 # Load OpenAI API key
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 uri = os.getenv("MONGO_URI")
 print(uri)
 # Set the API key
 openai.api_key = OPENAI_API_KEY
-
 # Include routers
-app.include_router(usersRouts.router, prefix="/users", tags=["Users"])
-app.include_router(jobRoutes.router, prefix="/jobs", tags=["Jobs"])
-app.include_router(resumeRouts.router, prefix="/resumes", tags=["Resumes"])
-app.include_router(adminRoutes.router, prefix="/admin", tags=["Admin"])
+app.include_router(usersRouts.router, prefix="/api/users", tags=["Users"])
+app.include_router(jobRoutes.router, prefix="/api/jobs", tags=["Jobs"])
+app.include_router(resumeRouts.router, prefix="/api/resumes", tags=["Resumes"])
+app.include_router(adminRoutes.router, prefix="/api/admin", tags=["Admin"])
 
 # Define the OAuth2 scheme for Swagger UI
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/authenticate")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/users/authenticate")
 
 
 def custom_openapi():

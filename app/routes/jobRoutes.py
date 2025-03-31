@@ -1,5 +1,11 @@
 # app/routes/jobRoutes.py
-from fastapi import APIRouter, HTTPException, Depends, Form, Query, BackgroundTasks
+from fastapi import (
+    APIRouter,
+    HTTPException,
+    Depends,
+    Form,
+    Query
+)
 from app.services.jobService import (
     save_job_service,
     get_user_jobs_service,
@@ -14,6 +20,40 @@ import asyncio
 from fastapi.concurrency import run_in_threadpool
 
 router = APIRouter()
+
+
+@router.post("/linkedin/search", status_code=200)
+async def search_and_save_jobs_in_linkedin(linkedin_username: str = Form(...), linkedin_password: str = Form(...), experience_level: str = Form(...), job_titles: list[str] = Form(...), maxNumberOfJobsTosearch: int = Form(100), token: dict = Depends(verify_token)):
+    """Search LinkedIn for jobs and save them to the database."""
+    print(f"\n\n\nsearch_and_save_jobs_in_linkedin started with {linkedin_username}, {linkedin_password}\n\n")
+    if maxNumberOfJobsTosearch > 25 or maxNumberOfJobsTosearch < 0:
+        raise HTTPException(status_code=401, detail="invalid Max Number Of Jobs To search.")
+
+    user_id = token.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Unauthorized.")
+
+
+    # Retain "no filter" value and normalize other values to lowercase
+    experience_level = experience_level.lower()
+    # Validate experience level
+    valid_levels = {'no filter', 'entry level', 'mid-senior'}
+    if experience_level not in valid_levels:
+        raise HTTPException(status_code=400, detail=f"Invalid experience level: {experience_level}")
+    print(f"\nExperience level received: {experience_level}")
+
+    print("\nStarting LinkedIn job search in a separate thread...\n")
+    # Run the scraping and saving in a *thread* so we don't lock the entire server
+    saved_jobs = await run_in_threadpool(search_and_save_linkedin_jobs_service,
+        user_id=user_id,
+        username=linkedin_username,
+        password=linkedin_password,
+        experience_level=experience_level,
+        job_titles=job_titles,
+        maxNumberOfJobsTosearch=maxNumberOfJobsTosearch
+    )
+    # Once complete, return success
+    return {"message": "Jobs searched and saved successfully.", "jobs": saved_jobs}
 
 
 @router.post("/save", status_code=201)
@@ -51,37 +91,6 @@ async def get_user_jobs(token: dict = Depends(verify_token)):
     jobs = get_user_jobs_service(user_id)
     return jobs
 
-
-@router.post("/linkedin/search", status_code=200)
-async def search_and_save_jobs_in_linkedin(linkedin_username: str = Form(...), linkedin_password: str = Form(...), experience_level: str = Form(...), job_titles: list[str] = Form(...), maxNumberOfJobsTosearch: int = Form(100), token: dict = Depends(verify_token)):
-    """Search LinkedIn for jobs and save them to the database."""
-    user_id = token.get("user_id")
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Unauthorized.")
-
-    # linkedin_username = 'yarden1606@gmail.com'
-    linkedin_password = 'yarden1169'
-
-    # Retain "no filter" value and normalize other values to lowercase
-    experience_level = experience_level.lower()
-    # Validate experience level
-    valid_levels = {'no filter', 'entry level', 'mid-senior'}
-    if experience_level not in valid_levels:
-        raise HTTPException(status_code=400, detail=f"Invalid experience level: {experience_level}")
-    print(f"\nExperience level received: {experience_level}")
-
-    print("call to search_and_save_linkedin_jobs func in jobRoutes file \n\n")
-    saved_jobs = await search_and_save_linkedin_jobs_service(
-        user_id=user_id,
-        username=linkedin_username,
-        password=linkedin_password,
-        experience_level=experience_level,
-        job_titles=job_titles,
-        maxNumberOfJobsTosearch=maxNumberOfJobsTosearch
-    )
-    return {"message": "Jobs searched and saved successfully.", "jobs": saved_jobs}
-
-
 @router.delete("/delete", status_code=200)
 async def delete_user_jobs(token: dict = Depends(verify_token)):
     """
@@ -109,8 +118,7 @@ async def delete_job_by_id(job_id: str, token: dict = Depends(verify_token)):
 
 
 @router.get("/search", status_code=200)
-async def search_jobs_by_title(title: str = Query(..., description="Title of the job to search for"), token: dict = Depends(verify_token),
-):
+async def search_jobs_by_title(title: str = Query(..., description="Title of the job to search for"), token: dict = Depends(verify_token),):
     """
     Search for jobs by title for the authenticated user.
     """

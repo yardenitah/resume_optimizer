@@ -3,6 +3,7 @@ import time
 from typing import Optional
 from bson import ObjectId
 from fastapi import HTTPException
+import asyncio
 from app.database.connection import MongoDBConnection
 from app.models.job import Job
 from bson import ObjectId
@@ -16,6 +17,44 @@ from app.utils import LinkedInManager
 db_connection = MongoDBConnection()
 db = db_connection.get_database()
 jobs_collection = db["jobs"]  # New collection for jobs
+
+
+def search_and_save_linkedin_jobs_service(user_id: str, username: str, password: str, experience_level: Optional[str], job_titles: list, maxNumberOfJobsTosearch: int):
+    linkedin_manager = LinkedInManager.LinkedInManager(username, password, experience_level)
+    print("call to LinkedInManager constructor successfully in jobService file \n\n")
+
+    if not linkedin_manager.login():
+        print("fail to login to linkedin \n\n")
+        raise HTTPException(status_code=401, detail="Failed to log in to LinkedIn.")
+
+    # Search for jobs based on the provided job titles
+    print("call to search_jobs_for_titles func \n\n")
+    job_results = linkedin_manager.search_jobs_for_titles(job_titles, maxNumberOfJobsTosearch)
+
+    saved_jobs = []
+    for job in job_results:
+        company_name, job_description, job_title, job_link = job
+
+        # Find the best matching resume
+        best_resume_result = asyncio.run(find_best_resume_service(user_id, job_description, job_title))
+        time.sleep(1)
+        best_resume_id = best_resume_result["best_resume"]["id"]
+        print(f"best_resume_id: {best_resume_id}")
+
+        # Save the job in MongoDB
+        saved_job = save_job_service(
+            user_id=user_id,
+            job_title=job_title,
+            job_link=job_link,
+            company_name=company_name,
+            job_description=job_description,
+            best_resume_id=best_resume_id,
+        )
+        saved_jobs.append(saved_job)
+
+
+    linkedin_manager.logout()
+    return saved_jobs
 
 
 def save_job_service(user_id: str, job_title: str, job_link: str, company_name: str, job_description: str, best_resume_id: str):
@@ -43,44 +82,6 @@ def get_user_jobs_service(user_id: str):
     for job in jobs:
         job["_id"] = str(job["_id"])  # Convert ObjectId to string for JSON serialization
     return jobs
-
-
-async def search_and_save_linkedin_jobs_service(user_id: str, username: str, password: str, experience_level: Optional[str], job_titles: list, maxNumberOfJobsTosearch: int):
-    linkedin_manager = LinkedInManager.LinkedInManager(username, password, experience_level)
-    print("call to LinkedInManager constructor successfully in jobService file \n\n")
-
-    if not linkedin_manager.login():
-        print("fail to login to linkedin \n\n")
-        raise HTTPException(status_code=401, detail="Failed to log in to LinkedIn.")
-
-    # Search for jobs based on the provided job titles
-    print("call to search_jobs_for_titles func \n\n")
-    job_results = linkedin_manager.search_jobs_for_titles(job_titles, maxNumberOfJobsTosearch)
-
-    saved_jobs = []
-    for job in job_results:
-        company_name, job_description, job_title, job_link = job
-
-        # Find the best matching resume
-        best_resume_result = await find_best_resume_service(user_id, job_description, job_title)
-        time.sleep(1)
-        best_resume_id = best_resume_result["best_resume"]["id"]
-        print(f"best_resume_id: {best_resume_id}")
-
-        # Save the job in MongoDB
-        saved_job = save_job_service(
-            user_id=user_id,
-            job_title=job_title,
-            job_link=job_link,
-            company_name=company_name,
-            job_description=job_description,
-            best_resume_id=best_resume_id,
-        )
-        saved_jobs.append(saved_job)
-
-
-    linkedin_manager.logout()
-    return saved_jobs
 
 
 def delete_user_jobs_service(user_id: str):

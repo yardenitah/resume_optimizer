@@ -1,0 +1,73 @@
+name: CI-CD Pipeline
+# using SSH key from git
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  # 1) Build & Test in GitHub Actions
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: |
+          pytest
+
+  # 2) Deploy to EC2 (only if tests succeed)
+  deploy:
+    needs: build_and_test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Install rsync (for file copying)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rsync
+
+      - name: Copy project to EC2 using rsync over SSH
+        uses: burnett01/rsync-deploy@v2
+        with:
+          switches: -avzr --delete
+          path: ./
+          remote_path: /home/ec2-user/resume_optimizer
+          remote_host: ${{ secrets.EC2_HOST }}
+          remote_user: ec2-user
+          remote_key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: SSH into EC2 and run Docker Compose
+        run: |
+          # Make sure SSH is set up
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          # Now SSH into EC2 and run Docker commands
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
+            cd /home/ec2-user/resume_optimizer
+
+            # Stop old containers
+            docker compose down
+
+            # Build new images
+            docker compose build
+
+            # Spin them up in detached mode
+            docker compose up -d
+
+            # (Optional) Check container logs or do a quick "docker compose ps" here
+          EOF

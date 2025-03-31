@@ -189,17 +189,6 @@ def get_resume_by_id_service(user_id: str, resume_id: str):
 
 
 async def find_best_resume_service(user_id: str, job_description: str, job_title: str):
-    """
-    Find the best matching resume for a given job description and title.
-
-    Args:
-        user_id (str): The user's ID.
-        job_description (str): The job description.
-        job_title (str): The job title.
-
-    Returns:
-        dict: The best matching resume and its score.
-    """
     # Retrieve all resumes for the user
     resumes = list(resumes_collection.find({"user_id": user_id}))
     if not resumes:

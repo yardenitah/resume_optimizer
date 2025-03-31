@@ -1,4 +1,4 @@
-# --- FastAPI and ASGI server for building and running the backend ---
+# ---requirements.txt: FastAPI and ASGI server for building and running the backend ---
 fastapi==0.100.0         # FastAPI framework for creating APIs
 uvicorn==0.23.0          # ASGI server to serve FastAPI apps
 
@@ -50,4 +50,6 @@ python-multipart==0.0.6  # Support for handling multipart/form-data requests
 
 # --- Selenium and WebDriver Manager ---
 selenium==4.10.0         # Selenium for browser automation
-webdriver-manager==4.0.1 # Automatically manage browser drivers
+
+# Add this line at the end or where appropriate
+gunicorn==20.1.0  # Specify the version or use the latest

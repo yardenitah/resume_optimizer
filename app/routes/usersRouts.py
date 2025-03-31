@@ -35,14 +35,6 @@ async def register(user: User):
     return {"message": "User registered successfully.", "user_id": user_id, "token": token}
 
 
-# @router.post("/login", status_code=200)
-# async def login(email: EmailStr, password: str):
-#     """ Authenticate a user and return a JWT token. """
-#     print("Received email:", email)
-#     print("Received password:", password)
-#     token_data = authenticate_user_service(email, password)
-#     return token_data
-
 
 @router.post("/login", status_code=200)
 async def login(login_request: LoginRequest):
