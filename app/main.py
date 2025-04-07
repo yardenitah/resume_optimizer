@@ -29,26 +29,13 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=[
-#         "http://resume-optimizer-resumes.s3-website.eu-central-1.amazonaws.com",
-#         "https://resume-optimizer-resumes.s3-website.eu-central-1.amazonaws.com",
-#         "http://localhost:3000",
-#         "http://127.0.0.1:3000",
-#         "https://d3n5er3xfm3yco.cloudfront.net"
-#     ],
-#     allow_credentials=True,   # IMPORTANT
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
-
 # Load OpenAI API key
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 uri = os.getenv("MONGO_URI")
 print(uri)
 # Set the API key
 openai.api_key = OPENAI_API_KEY
+print(f"OpenAI API Key: {OPENAI_API_KEY}")
 # Include routers
 app.include_router(usersRouts.router, prefix="/api/users", tags=["Users"])
 app.include_router(jobRoutes.router, prefix="/api/jobs", tags=["Jobs"])
@@ -88,13 +75,13 @@ def custom_openapi():
 # Apply the custom OpenAPI schema
 app.openapi = custom_openapi
 
-
 @app.get("/")
 async def check_openai_key():
     try:
-        # Make a simple request to the OpenAI API with a supported model
+        print("Checking OpenAI API key...")
+        # Make a real request to OpenAI
         response = openai.ChatCompletion.create(
-            model="gpt-4o",
+            model="gpt-4o",  # You can change to gpt-3.5-turbo if you want to save money
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": "Say hello!"}
@@ -110,6 +97,11 @@ async def check_openai_key():
         return {
             "status": "error",
             "message": "Invalid API Key! Please check your key and try again."
+        }
+    except openai.error.RateLimitError:
+        return {
+            "status": "error",
+            "message": "Quota exceeded. Please check your OpenAI usage and billing."
         }
     except Exception as e:
         return {

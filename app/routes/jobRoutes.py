@@ -4,7 +4,8 @@ from fastapi import (
     HTTPException,
     Depends,
     Form,
-    Query
+    Query,
+    BackgroundTasks
 )
 from app.services.jobService import (
     save_job_service,
@@ -12,7 +13,7 @@ from app.services.jobService import (
     search_and_save_linkedin_jobs_service,
     delete_user_jobs_service,
     delete_job_by_id_service,
-    search_jobs_by_title_service,
+    search_jobs_by_title_service, get_job_important_points_service,
 )
 from app.services.resumeService import find_best_resume_service
 from app.utils.jwt import verify_token
@@ -23,37 +24,38 @@ router = APIRouter()
 
 
 @router.post("/linkedin/search", status_code=200)
-async def search_and_save_jobs_in_linkedin(linkedin_username: str = Form(...), linkedin_password: str = Form(...), experience_level: str = Form(...), job_titles: list[str] = Form(...), maxNumberOfJobsTosearch: int = Form(100), token: dict = Depends(verify_token)):
-    """Search LinkedIn for jobs and save them to the database."""
-    print(f"\n\n\nsearch_and_save_jobs_in_linkedin started with {linkedin_username}, {linkedin_password}\n\n")
-    if maxNumberOfJobsTosearch > 25 or maxNumberOfJobsTosearch < 0:
-        raise HTTPException(status_code=401, detail="invalid Max Number Of Jobs To search.")
-
+async def search_and_save_jobs_in_linkedin(
+    linkedin_username: str = Form(...),
+    linkedin_password: str = Form(...),
+    experience_level: str = Form(...),
+    job_titles: list[str] = Form(...),
+    maxNumberOfJobsTosearch: int = Form(100),
+    token: dict = Depends(verify_token),
+):
     user_id = token.get("user_id")
     if not user_id:
         raise HTTPException(status_code=401, detail="Unauthorized.")
 
+    if maxNumberOfJobsTosearch > 25 or maxNumberOfJobsTosearch < 0:
+        raise HTTPException(status_code=400, detail="Invalid max number of jobs.")
 
-    # Retain "no filter" value and normalize other values to lowercase
     experience_level = experience_level.lower()
-    # Validate experience level
     valid_levels = {'no filter', 'entry level', 'mid-senior'}
     if experience_level not in valid_levels:
         raise HTTPException(status_code=400, detail=f"Invalid experience level: {experience_level}")
-    print(f"\nExperience level received: {experience_level}")
 
-    print("\nStarting LinkedIn job search in a separate thread...\n")
-    # Run the scraping and saving in a *thread* so we don't lock the entire server
-    saved_jobs = await run_in_threadpool(search_and_save_linkedin_jobs_service,
-        user_id=user_id,
-        username=linkedin_username,
-        password=linkedin_password,
-        experience_level=experience_level,
-        job_titles=job_titles,
-        maxNumberOfJobsTosearch=maxNumberOfJobsTosearch
+    await run_in_threadpool(
+        search_and_save_linkedin_jobs_service,
+        user_id,
+        linkedin_username,
+        linkedin_password,
+        experience_level,
+        job_titles,
+        maxNumberOfJobsTosearch,
     )
-    # Once complete, return success
-    return {"message": "Jobs searched and saved successfully.", "jobs": saved_jobs}
+
+    return {"message": "LinkedIn job scraping completed."}
+
 
 
 @router.post("/save", status_code=201)
@@ -63,12 +65,11 @@ async def save_job(job_title: str = Form(..., description="Title of the job"),co
     if not user_id:
         raise HTTPException(status_code=401, detail="Unauthorized.")
 
-    # Find the best matching resume for the job
     best_resume_result = await find_best_resume_service(user_id, job_description, job_title)
     best_resume_id = best_resume_result["best_resume"]["id"]
+    print(f"\nbest_resume_id: {best_resume_id}\n\n")
 
-    # Save job details to MongoDB
-    result = save_job_service(
+    result = await save_job_service(
         user_id=user_id,
         job_title=job_title,
         job_link=job_link,
@@ -116,7 +117,6 @@ async def delete_job_by_id(job_id: str, token: dict = Depends(verify_token)):
     result = delete_job_by_id_service(user_id, job_id)
     return result
 
-
 @router.get("/search", status_code=200)
 async def search_jobs_by_title(title: str = Query(..., description="Title of the job to search for"), token: dict = Depends(verify_token),):
     """
@@ -128,3 +128,17 @@ async def search_jobs_by_title(title: str = Query(..., description="Title of the
 
     jobs = search_jobs_by_title_service(user_id, title)
     return jobs
+
+
+
+@router.get("/jobpoint/{job_id}", status_code=200)
+async def get_jobpoint(job_id: str, token: dict = Depends(verify_token)):
+    """
+    Get the important points to remember for a specific job.
+    """
+    user_id = token.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Unauthorized.")
+
+    points = get_job_important_points_service(user_id, job_id)
+    return {"job_id": job_id, "important_points": points}

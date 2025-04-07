@@ -1,48 +1,16 @@
 # app/utils/chatgpt_service.py
 import openai
-import asyncio
 import os
 from dotenv import load_dotenv
+import asyncio
 import logging
+
 
 # Load environment variables
 load_dotenv()
 
 # Set OpenAI API key
 openai.api_key = os.getenv("OPENAI_API_KEY")
-
-
-# async def analyze_resume(resume_content: str, job_description: str, job_title: str) -> str:
-#     try:
-#         # Call OpenAI's ChatGPT API
-#         response = openai.ChatCompletion.create(
-#             model="gpt-4",
-#             messages=[
-#                 {"role": "system", "content": "You are an expert in evaluating resumes for job applications."},
-#                 {
-#                     "role": "user",
-#                     "content": (
-#                         f"Please analyze the following resume for the job title '{job_title}'. "
-#                         f"Provide feedback on how well it aligns with the job description "
-#                         f"and suggest improvements.\n\n"
-#                         f"Resume Content:\n{resume_content}\n\n"
-#                         f"Job Description:\n{job_description}"
-#                     ),
-#                 },
-#             ],
-#             max_tokens=90
-#         )
-#         # Return the AI-generated analysis
-#         return response.choices[0].message.content.strip()
-#     except Exception as e:
-#         # Handle exceptions
-#         return f"Failed to analyze resume: {str(e)}"
-
-
-import asyncio
-import logging
-import openai
-
 async def analyze_resume(resume_content: str, job_description: str, job_title: str) -> str:
     """
     Analyze the resume for a given job, returning a concise response
@@ -132,3 +100,31 @@ async def calculate_match_score(resume_content: str, job_description: str, job_t
         # Log the error and return a default negative score
         logging.error(f"Error calculating match score: {str(e)}")
         return -1.0
+
+
+async def extract_important_points_from_job(job_title: str, job_description: str) -> list[str]:
+    """
+    Use GPT-4 to extract important points to remember about the job.
+    """
+    prompt = (
+        f"Extract 5 short bullet points that summarize the most important aspects "
+        f"to remember about the job '{job_title}'.\n\n"
+        f"Job Description:\n{job_description}\n\n"
+        "Only return the points as a numbered list, each point in a single line."
+    )
+
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are an expert in summarizing job descriptions."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=200,
+            temperature=0.5,
+        )
+        content = response.choices[0].message.content.strip()
+        return [line.strip("0123456789). ").strip() for line in content.split("\n") if line.strip()]
+    except Exception as e:
+        logging.error(f"Error extracting important job points: {e}")
+        return []
